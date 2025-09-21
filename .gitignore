@@ -2,3 +2,5 @@
 backend/venv312/
 __pycache__/
 *.pyc
+
+".env" 
