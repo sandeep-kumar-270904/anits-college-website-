@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - ANITS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/contact.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav>
+    <div class="logo">ANITS</div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="departments.html">Departments</a>
+        <a href="faculty.html">Faculty</a>
+        <a href="events.html">Events</a>
+        <a href="circulars.html">Circulars</a>
+        <a href="contact.html" class="active">Contact</a>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" style="background: url('assets/images/contact-hero.jpg') center/cover no-repeat;">
+    <div class="hero-overlay">
+        <div class="hero-text">
+            <h1>Contact ANITS</h1>
+            <p>We’d love to hear from you</p>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Info Section -->
+<section id="contact-info" class="section" data-animate>
+    <h2>Get in Touch</h2>
+    <div class="contact-cards">
+        <div class="card">
+            <h3>Email</h3>
+            <p>info@anits.edu.in</p>
+        </div>
+        <div class="card">
+            <h3>Phone</h3>
+            <p>+91-891-2841111</p>
+        </div>
+        <div class="card">
+            <h3>Address</h3>
+            <p>ANITS Campus, Sangivalasa, Visakhapatnam, Andhra Pradesh, India</p>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form Section -->
+<section id="contact-form-section" class="section" data-animate>
+    <h2>Send Us a Message</h2>
+    <form id="contact-form">
+        <div class="form-group">
+            <input type="text" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+            <input type="email" placeholder="Your Email" required>
+        </div>
+        <div class="form-group">
+            <textarea placeholder="Your Message" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Send Message</button>
+    </form>
+</section>
+
+<!-- Map Section -->
+<section id="map-section" class="section" data-animate>
+    <h2>Campus Location</h2>
+    <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3806.609773865846!2d83.36823077502017!3d17.877232404563707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a39ff84a6e8d091%3A0x1a5ebd5c2ee4f28d!2sAnil%20Neerukonda%20Institute%20of%20Technology%20and%20Sciences!5e0!3m2!1sen!2sin!4v1597699321538!5m2!1sen!2sin"
+        width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+</section>
+
+<!-- Floating Chatbot Icon -->
+<div id="chatbot-container">
+    <div id="chatbot-icon">🤖</div>
+    <div id="chatbot-window">
+        <div id="chatbot-header">Campus Assistant</div>
+        <div id="chatbot-body">
+            <div id="chatbot-messages"></div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="Ask me anything...">
+                <button id="chatbot-send">Send</button>
+                <button id="chatbot-voice">🎤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/chatbot.js"></script>
+<script>
+    const animateElements = document.querySelectorAll('[data-animate]');
+    window.addEventListener('scroll', () => {
+        animateElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if(rect.top < window.innerHeight - 50){
+                el.classList.add('animate');
+            }
+        });
+    });
+
+    // Simple form submission (you can connect to backend later)
+    document.getElementById('contact-form').addEventListener('submit', function(e){
+        e.preventDefault();
+        alert('Message sent! (Backend integration pending)');
+        this.reset();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+flask
+flask-cors
+openai
+python-dotenv
+pymupdf        # for extracting text from PDFs
+langdetect     # detect language
+googletrans==4.0.0-rc1  # for translations
+sqlalchemy     # database ORM

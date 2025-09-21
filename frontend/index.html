@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANITS - Shaping Future Engineers</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chatbot.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+    <div class="logo">ANITS</div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="departments.html">Departments</a>
+        <a href="faculty.html">Faculty</a>
+        <a href="events.html">Events</a>
+        <a href="circulars.html">Circulars</a>
+        <a href="contact.html">Contact</a>
+    </div>
+</nav>
+
+<section id="hero" class="hero">
+    <div class="hero-overlay">
+        <div class="hero-text">
+            <h1>Welcome to ANITS</h1>
+            <p>Shaping Future Engineers Since 1980</p>
+            <a href="departments.html" class="btn-primary">Explore Departments</a>
+            <a href="contact.html" class="btn-secondary">Contact Us</a>
+        </div>
+    </div>
+</section>
+
+<section id="about-preview" class="section" data-animate>
+     <h2>About ANITS</h2>
+     <p>ANITS is a premier institute providing quality engineering education with cutting-edge research and innovation labs. Our vision is to create global leaders through excellence in education.</p>
+     <a href="about.html" class="btn-primary">Learn More</a>
+</section>
+<section id="departments-preview" class="section" data-animate>
+     <h2>Our Departments</h2>
+     <div class="card-container">
+         <div class="card"><img src="assets/images/cse.jpg" alt="Computer Science"><h3>Computer Science</h3><p>Focus on AI, Web Development, Cybersecurity, and LLM technologies.</p></div>
+         <div class="card"><img src="assets/images/ece.jpg" alt="Electronics & Communication"><h3>Electronics & Communication</h3><p>Advanced labs in embedded systems and communication technologies.</p></div>
+         <div class="card"><img src="assets/images/mech.jpg" alt="Mechanical Engineering"><h3>Mechanical Engineering</h3><p>Research in robotics, automation, and mechanical design.</p></div>
+     </div>
+     <a href="departments.html" class="btn-secondary">View All Departments</a>
+</section>
+<section id="events-preview" class="section" data-animate>
+     <h2>Upcoming Events</h2>
+     <div class="card-container">
+         <div class="card"><img src="assets/images/event1.jpg" alt="Tech Fest"><h3>Technical Fest 2025</h3><p>Workshops, hackathons, and competitions for students.</p></div>
+         <div class="card"><img src="assets/images/event2.jpg" alt="AI Workshop"><h3>AI Workshop</h3><p>Hands-on learning in AI, ML, and LLM technologies.</p></div>
+     </div>
+     <a href="events.html" class="btn-primary">View All Events</a>
+</section>
+<section id="circulars-preview" class="section" data-animate>
+     <h2>Circulars & Notices</h2>
+     <p>Access PDF circulars, announcements, and timetables quickly.</p>
+     <a href="circulars.html" class="btn-secondary">View All Circulars</a>
+</section>
+<section id="contact-preview" class="section" data-animate>
+     <h2>Contact Us</h2>
+     <p>Email: info@anits.edu.in | Phone: +91-891-2841111</p>
+     <p>Address: ANITS Campus, Sangivalasa, Visakhapatnam, Andhra Pradesh, India</p>
+     <a href="contact.html" class="btn-primary">Get in Touch</a>
+</section>
+
+<div id="my-chatbot-app">
+
+    <div class="chatbot-container">
+        
+        <svg class="open-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+
+        <div class="chatbot-header">
+            <span class="close-btn-x">&times;</span>
+        </div>
+
+        <ul class="chat-messages"></ul>
+
+        <div class="chat-input-area">
+            <textarea class="user-input" placeholder="Type a message..." required></textarea>
+            
+            <button id="mic-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>
+            </button>
+            
+            <button id="send-btn">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/chatbot.js"></script>
+<script>
+    // Scroll animations
+    const animateElements = document.querySelectorAll('[data-animate]');
+    window.addEventListener('scroll', () => {
+        animateElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if(rect.top < window.innerHeight - 50){
+                el.classList.add('animate');
+            }
+        });
+    });
+</script>
+</body>
+</html>

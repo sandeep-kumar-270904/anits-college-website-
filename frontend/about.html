@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About ANITS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/about.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav>
+    <div class="logo">ANITS</div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="about.html" class="active">About</a>
+        <a href="departments.html">Departments</a>
+        <a href="faculty.html">Faculty</a>
+        <a href="events.html">Events</a>
+        <a href="circulars.html">Circulars</a>
+        <a href="contact.html">Contact</a>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" style="background: url('assets/images/about-hero.jpg') center/cover no-repeat;">
+    <div class="hero-overlay">
+        <div class="hero-text">
+            <h1>About ANITS</h1>
+            <p>Shaping Future Engineers Since 1980</p>
+        </div>
+    </div>
+</section>
+
+<!-- About Content -->
+<section id="about-main" class="section" data-animate>
+    <div class="about-container">
+        <div class="about-text">
+            <h2>Our Mission & Vision</h2>
+            <p>ANITS aims to provide world-class engineering education, foster innovation, and cultivate leadership skills among students. Our vision is to create globally competent engineers who contribute positively to society.</p>
+        </div>
+        <div class="about-image">
+            <img src="assets/images/about-campus.jpg" alt="ANITS Campus">
+        </div>
+    </div>
+</section>
+
+<!-- History Section -->
+<section id="history" class="section" data-animate>
+    <h2>Our Journey</h2>
+    <p>Founded in 1980, ANITS has grown from a small institute to a premier hub of engineering excellence, offering multiple undergraduate and postgraduate programs and nurturing a culture of research and innovation.</p>
+    <div class="timeline">
+        <div class="timeline-item">
+            <span class="year">1980</span>
+            <p>Institute Established</p>
+        </div>
+        <div class="timeline-item">
+            <span class="year">1990</span>
+            <p>First Graduation Batch</p>
+        </div>
+        <div class="timeline-item">
+            <span class="year">2005</span>
+            <p>Introduction of Advanced Labs</p>
+        </div>
+        <div class="timeline-item">
+            <span class="year">2020</span>
+            <p>Campus Expansion & AI Labs</p>
+        </div>
+    </div>
+</section>
+
+<!-- Floating Chatbot Icon -->
+<div id="chatbot-container">
+    <div id="chatbot-icon">🤖</div>
+    <div id="chatbot-window">
+        <div id="chatbot-header">Campus Assistant</div>
+        <div id="chatbot-body">
+            <div id="chatbot-messages"></div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="Ask me anything...">
+                <button id="chatbot-send">Send</button>
+                <button id="chatbot-voice">🎤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/chatbot.js"></script>
+<script>
+    // Scroll animations
+    const animateElements = document.querySelectorAll('[data-animate]');
+    window.addEventListener('scroll', () => {
+        animateElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if(rect.top < window.innerHeight - 50){
+                el.classList.add('animate');
+            }
+        });
+    });
+</script>
+</body>
+</html>
