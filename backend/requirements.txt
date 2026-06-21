@@ -1,8 +1,11 @@
 flask
 flask-cors
-openai
+flask-limiter
+openai>=1.0.0
 python-dotenv
 pymupdf        # for extracting text from PDFs
 langdetect     # detect language
-googletrans==4.0.0-rc1  # for translations
-sqlalchemy     # database ORM
+deep-translator  # for translations
+pymongo        # MongoDB driver
+PyJWT          # JSON Web Tokens for auth
+google-generativeai # Google Gemini API
