@@ -48,7 +48,14 @@ const Navbar = () => {
                 <Link to="/academics/calendar">Academic Calendar</Link>
                 <Link to="/academics/timetable">Time Table</Link>
                 <Link to="/academics/syllabus">Syllabus</Link>
+                <Link to="/academics/e-learning">E-Learning</Link>
                 <Link to="/academics/exams">Exam Section</Link>
+                <Link to="/academics/iso-certificate">ISO Certificate</Link>
+                <Link to="/academics/apssdc">APSSDC</Link>
+                <Link to="/academics/swayam-nptel">SWAYAM-NPTEL</Link>
+                <Link to="/academics/professional-bodies">Professional Bodies</Link>
+                <Link to="/facilities/nss">NSS</Link>
+                <Link to="/facilities/ncc">NCC</Link>
               </NavItem>
               <NavItem title="Departments" to="/departments">
                 <Link to="/departments/chemical">Chemical Engineering</Link>

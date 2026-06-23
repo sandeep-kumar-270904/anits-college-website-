@@ -40,6 +40,7 @@ import WomenEmpowerment from './pages/WomenEmpowerment';
 import WomenGrievance from './pages/WomenGrievance';
 import Iqac from './pages/Iqac';
 import Research from './pages/Research';
+import GenericAcademicPage from './pages/GenericAcademicPage';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
@@ -61,6 +62,14 @@ function App() {
               <Route path="/about/organization-chart" element={<OrganizationChart />} />
               <Route path="/admissions" element={<Admissions />} />
               <Route path="/academics/syllabus" element={<Syllabus />} />
+              <Route path="/academics/calendar" element={<GenericAcademicPage />} />
+              <Route path="/academics/timetable" element={<GenericAcademicPage />} />
+              <Route path="/academics/e-learning" element={<GenericAcademicPage />} />
+              <Route path="/academics/exams" element={<GenericAcademicPage />} />
+              <Route path="/academics/iso-certificate" element={<GenericAcademicPage />} />
+              <Route path="/academics/apssdc" element={<GenericAcademicPage />} />
+              <Route path="/academics/swayam-nptel" element={<GenericAcademicPage />} />
+              <Route path="/academics/professional-bodies" element={<GenericAcademicPage />} />
               <Route path="/policies" element={<Policies />} />
               <Route path="/iqac" element={<Iqac />} />
               <Route path="/rd" element={<Research />} />
