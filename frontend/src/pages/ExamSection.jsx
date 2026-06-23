@@ -36,13 +36,13 @@ const ExamSection = () => {
         
         {/* Main Content */}
         <div className="w-full lg:w-2/3 lg:pr-8">
-          <h2 className="text-3xl font-bold text-[#1e3a8a] mb-8">About Autonomous Status</h2>
+          <h2 className="text-2xl font-bold text-[#333] mb-6 font-['Oswald',sans-serif]">About Autonomous Status</h2>
           
-          <p className="text-gray-600 leading-relaxed mb-6">
+          <p className="text-gray-600 leading-relaxed mb-6 text-[15px]">
             ANITS is affiliated to Andhra University and follows its Academic rules and regulations to honor B.Tech/ M.Tech degrees. 
             The Institute was granted <strong>"Autonomous Status"</strong> by UGC during May 2015, applicable from the admitted batch of 2015-16 academic year.
           </p>
-          <p className="text-gray-600 leading-relaxed mb-10">
+          <p className="text-gray-600 leading-relaxed mb-10 text-[15px]">
             As an autonomous institution, ANITS enjoys academic freedom in the following areas while maintaining National/International standards:
           </p>
 
@@ -85,8 +85,8 @@ const ExamSection = () => {
             </div>
           </div>
 
-          <h2 className="text-3xl font-bold text-[#1e3a8a] mb-8">Governing Committees</h2>
-          <p className="text-gray-600 mb-6 text-sm">The autonomous status is governed by the following committees:</p>
+          <h2 className="text-2xl font-bold text-[#333] mb-6 font-['Oswald',sans-serif]">Governing Committees</h2>
+          <p className="text-gray-600 mb-6 text-[15px]">The autonomous status is governed by the following committees:</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="border border-gray-200 rounded-md overflow-hidden shadow-sm h-full flex flex-col">

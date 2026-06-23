@@ -22,7 +22,7 @@ const ELearning = () => {
         
         {/* CampX Resource */}
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-[#3b82f6] text-white p-3 text-center font-bold text-lg tracking-wide">
+          <div className="bg-[#3b82f6] text-white p-3 text-center font-bold text-lg tracking-wide font-['Oswald',sans-serif]">
             ANITS - E-Learning Resource
           </div>
           <div className="p-8 flex justify-center items-center">
@@ -35,7 +35,7 @@ const ELearning = () => {
 
         {/* Other E-Learning Resources */}
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-[#3b82f6] text-white p-3 text-center font-bold tracking-wide">
+          <div className="bg-[#3b82f6] text-white p-3 text-center font-bold tracking-wide font-['Oswald',sans-serif] text-lg">
             Other E-Learning Resources
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -55,7 +55,7 @@ const ELearning = () => {
 
         {/* First Year - Study Material */}
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden mb-12">
-          <div className="bg-[#3b82f6] text-white p-3 text-center font-bold tracking-wide">
+          <div className="bg-[#3b82f6] text-white p-3 text-center font-bold tracking-wide font-['Oswald',sans-serif] text-lg">
             First Year - Study Material
           </div>
           <div className="p-6 flex flex-col">
