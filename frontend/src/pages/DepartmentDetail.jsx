@@ -132,7 +132,9 @@ const departmentData = {
     programs: [{ level: "UG", name: "B.Tech - ECE", duration: "4 Years", intake: 180 }],
     history: [{ year: "2001", text: "ECE Department Established." }],
     highlights: [
-      { title: "Academic Excellence", text: "Strong alumni network and AICTE funded projects." }
+      { title: "Academic Excellence", text: "Rank in top 10 positions in university examinations. Students regularly win top prizes at national level hackathons." },
+      { title: "Research & Innovation", text: "The Department of Electronics and Communication Engineering (ECE) has established excellent research culture between the academia and industry." },
+      { title: "Industry Connect", text: "MOU's with leading tech companies." }
     ]
   },
   mech: {
@@ -148,8 +150,9 @@ const departmentData = {
     programs: [{ level: "UG", name: "B.Tech - MECH", duration: "4 Years", intake: 120 }],
     history: [{ year: "2005", text: "MECH Department Established." }],
     highlights: [
-      { title: "Infrastructure", text: "Advanced CAD/CAM labs and modern manufacturing facilities." },
-      { title: "Student Activities", text: "Active SAE Baja teams and robotics clubs." }
+      { title: "Academic Excellence", text: "Our students regularly rank top in University exams and secure placements in core mechanical sectors." },
+      { title: "Research & Innovation", text: "The department has established excellent research infrastructure. Faculty members are actively involved in research." },
+      { title: "Industry Connect", text: "Well-established industry-institute collaboration for student internships." }
     ]
   },
   eee: {
@@ -183,6 +186,95 @@ const departmentData = {
     highlights: [
       { title: "Academic Excellence", text: "Award-winning structural design projects and consultancies." }
     ]
+  },
+  mba: {
+    name: "MBA (Hospital Administration)",
+    shortName: "MBA",
+    hodName: "Dr. V. Bindu Neeharika",
+    hodTitle: "MBA, M.Phil, Ph.D",
+    hodRole: "HOD, Dept of MBA",
+    hodMessage: "Greetings and welcome to the School of Management Studies at Anil Neerukonda Institute of Technology & Sciences. Our department offers graduate and postgraduate programs in Management, emphasizing experiential learning through internships, case studies, and holistic education.",
+    vision: "The Department of Management Studies envisions transforming into a center of excellence in management education dedicated to nurturing future leaders.",
+    mission: [
+      "To create resources matching the employability and management competencies of the students.",
+      "Ensuring the stakeholders participation in every sphere of activity to uphold the tradition of inclusive growth."
+    ],
+    admissions: { btech: 60, facultyStrength: 10, programs: "MBA" },
+    programs: [{ level: "PG", name: "MBA (Hospital Administration)", duration: "2 Years", intake: 60 }],
+    history: [{ year: "2023", text: "ANITS proudly presents a distinctive postgraduate program in MBA (Hospital Administration), launched in 2023." }],
+    highlights: [
+      { title: "Department Highlights", text: "To be updated soon." }
+    ]
+  },
+  'bsh-hod': {
+    name: "Basic Sciences & Humanities - HOD",
+    shortName: "BSH-HOD",
+    hodName: "HOD, BS&H",
+    hodTitle: "Ph.D",
+    hodRole: "HOD, Dept of BS&H",
+    hodMessage: "Welcome to the Department of Basic Sciences and Humanities. We lay the fundamental foundation for all engineering disciplines.",
+    vision: "To build a strong foundation in basic sciences.",
+    mission: ["Provide excellent fundamental education."],
+    admissions: { btech: 0, facultyStrength: 40, programs: "First Year Engineering" },
+    programs: [],
+    history: [{ year: "2001", text: "Department established." }],
+    highlights: [{ title: "Excellence", text: "Highly qualified faculty." }]
+  },
+  'bsh-chemistry': {
+    name: "Chemistry",
+    shortName: "CHEMISTRY",
+    hodName: "Dr. Chemistry Head",
+    hodTitle: "Ph.D",
+    hodRole: "Head of Chemistry",
+    hodMessage: "Welcome to the Chemistry division. Our focus is on applied engineering chemistry.",
+    vision: "To excel in applied chemistry.",
+    mission: ["Promote chemistry research."],
+    admissions: { btech: 0, facultyStrength: 10, programs: "-" },
+    programs: [],
+    history: [{ year: "2001", text: "Division established." }],
+    highlights: [{ title: "Labs", text: "State of the art chemistry labs." }]
+  },
+  'bsh-english': {
+    name: "English and Humanities",
+    shortName: "ENGLISH",
+    hodName: "Dr. English Head",
+    hodTitle: "Ph.D",
+    hodRole: "Head of English",
+    hodMessage: "Welcome to English & Humanities. We enhance the communication and soft skills of engineering students.",
+    vision: "To improve professional communication.",
+    mission: ["Train in soft skills and language proficiency."],
+    admissions: { btech: 0, facultyStrength: 8, programs: "-" },
+    programs: [],
+    history: [{ year: "2001", text: "Division established." }],
+    highlights: [{ title: "Language Lab", text: "Advanced digital language laboratories." }]
+  },
+  'bsh-maths': {
+    name: "Mathematics",
+    shortName: "MATHS",
+    hodName: "Dr. Maths Head",
+    hodTitle: "Ph.D",
+    hodRole: "Head of Mathematics",
+    hodMessage: "Welcome to Mathematics. Mathematics is the language of engineering. We provide strong analytical skills.",
+    vision: "To cultivate analytical thinking.",
+    mission: ["Provide strong mathematical foundation."],
+    admissions: { btech: 0, facultyStrength: 12, programs: "-" },
+    programs: [],
+    history: [{ year: "2001", text: "Division established." }],
+    highlights: [{ title: "Curriculum", text: "Applied mathematics for engineering applications." }]
+  },
+  'bsh-physics': {
+    name: "Physics",
+    shortName: "PHYSICS",
+    hodName: "Dr. Physics Head",
+    hodTitle: "Ph.D",
+    hodRole: "Head of Physics",
+    hodMessage: "Welcome to Physics. We explore the fundamental laws of nature that drive engineering innovations.",
+    vision: "To understand and apply physical laws.",
+    mission: ["Promote applied physics research."],
+    admissions: { btech: 0, facultyStrength: 10, programs: "-" },
+    programs: [],
+    history: [{ year: "2001", text: "Division established." }],
+    highlights: [{ title: "Research", text: "Active research in materials science." }]
   }
 };
 

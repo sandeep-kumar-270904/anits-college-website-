@@ -61,9 +61,18 @@ const Navbar = () => {
                 <Link to="/departments/it">Information Technology</Link>
                 <Link to="/departments/mech">Mechanical Engineering</Link>
                 <Link to="/departments/mba">MBA (Hospital Administration)</Link>
-                <Link to="/departments/bsh" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  Basic Sciences & Humanities <ChevronRight size={14}/>
-                </Link>
+                <div className="relative group/bsh cursor-pointer">
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', color: '#333', fontSize: '14px'}} className="hover:bg-gray-50">
+                    Basic Sciences & Humanities <ChevronRight size={14}/>
+                  </div>
+                  <div className="absolute left-full top-0 hidden group-hover/bsh:flex flex-col bg-white min-w-[200px] shadow-xl border border-gray-100 rounded-md py-2 z-[60]">
+                    <Link to="/departments/bsh-hod" style={{padding: '8px 20px', color: '#333', fontSize: '14px', textDecoration: 'none'}} className="hover:bg-[#1e3a8a] hover:text-white">BS&H-HOD</Link>
+                    <Link to="/departments/bsh-chemistry" style={{padding: '8px 20px', color: '#333', fontSize: '14px', textDecoration: 'none'}} className="hover:bg-[#1e3a8a] hover:text-white">Chemistry</Link>
+                    <Link to="/departments/bsh-english" style={{padding: '8px 20px', color: '#333', fontSize: '14px', textDecoration: 'none'}} className="hover:bg-[#1e3a8a] hover:text-white">English and Humanities</Link>
+                    <Link to="/departments/bsh-maths" style={{padding: '8px 20px', color: '#333', fontSize: '14px', textDecoration: 'none'}} className="hover:bg-[#1e3a8a] hover:text-white">Mathematics</Link>
+                    <Link to="/departments/bsh-physics" style={{padding: '8px 20px', color: '#333', fontSize: '14px', textDecoration: 'none'}} className="hover:bg-[#1e3a8a] hover:text-white">Physics</Link>
+                  </div>
+                </div>
               </NavItem>
               <Link to="/rd" className="gh-nav-link">R&D</Link>
               <Link to="/iqac" className="gh-nav-link">IQAC</Link>
