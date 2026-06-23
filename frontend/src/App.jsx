@@ -41,6 +41,11 @@ import WomenGrievance from './pages/WomenGrievance';
 import Iqac from './pages/Iqac';
 import Research from './pages/Research';
 import GenericAcademicPage from './pages/GenericAcademicPage';
+import Apssdc from './pages/Apssdc';
+import ProfessionalBodies from './pages/ProfessionalBodies';
+import SwayamNptel from './pages/SwayamNptel';
+import ExamSection from './pages/ExamSection';
+import ELearning from './pages/ELearning';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
@@ -64,12 +69,12 @@ function App() {
               <Route path="/academics/syllabus" element={<Syllabus />} />
               <Route path="/academics/calendar" element={<GenericAcademicPage />} />
               <Route path="/academics/timetable" element={<GenericAcademicPage />} />
-              <Route path="/academics/e-learning" element={<GenericAcademicPage />} />
-              <Route path="/academics/exams" element={<GenericAcademicPage />} />
+              <Route path="/academics/e-learning" element={<ELearning />} />
+              <Route path="/academics/exams" element={<ExamSection />} />
               <Route path="/academics/iso-certificate" element={<GenericAcademicPage />} />
-              <Route path="/academics/apssdc" element={<GenericAcademicPage />} />
-              <Route path="/academics/swayam-nptel" element={<GenericAcademicPage />} />
-              <Route path="/academics/professional-bodies" element={<GenericAcademicPage />} />
+              <Route path="/academics/apssdc" element={<Apssdc />} />
+              <Route path="/academics/swayam-nptel" element={<SwayamNptel />} />
+              <Route path="/academics/professional-bodies" element={<ProfessionalBodies />} />
               <Route path="/policies" element={<Policies />} />
               <Route path="/iqac" element={<Iqac />} />
               <Route path="/rd" element={<Research />} />
