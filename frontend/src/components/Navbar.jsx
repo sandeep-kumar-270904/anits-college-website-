@@ -54,7 +54,9 @@ const Navbar = () => {
                 <Link to="/departments/cse">Computer Science and Eng.</Link>
                 <Link to="/departments/it">Information Technology</Link>
                 <Link to="/departments/ece">Electronics & Comm. Eng.</Link>
+                <Link to="/departments/eee">Electrical & Electronics</Link>
                 <Link to="/departments/mech">Mechanical Engineering</Link>
+                <Link to="/departments/civil">Civil Engineering</Link>
               </NavItem>
               <Link to="/rd" className="gh-nav-link">R&D</Link>
               <Link to="/iqac" className="gh-nav-link">IQAC</Link>
