@@ -115,16 +115,20 @@ const DepartmentDetail = () => {
 
   // Sidebar Menu Structure
   const sidebarMenus = [
-    { name: 'Department Profile', hasSubs: true },
-    { name: 'Academics', hasSubs: true },
-    { name: 'R&D', hasSubs: true },
-    { name: 'Student Activities', hasSubs: true },
-    { name: 'Placements', hasSubs: true },
-    { name: 'Infrastructure & Facilities', hasSubs: true },
-    { name: 'Student Welfare', hasSubs: true },
+    { 
+      name: 'Department Profile', 
+      hasSubs: true,
+      subs: ['About Us', 'Vision & Mission', 'Message from HOD', 'PEOs, PSOs & POs', 'Board of Studies'] 
+    },
+    { name: 'Academics', hasSubs: true, subs: ['Syllabus', 'Timetable'] },
+    { name: 'R&D', hasSubs: true, subs: ['Publications', 'Patents'] },
+    { name: 'Student Activities', hasSubs: true, subs: ['Clubs', 'Events'] },
+    { name: 'Placements', hasSubs: true, subs: ['Statistics', 'Recruiters'] },
+    { name: 'Infrastructure & Facilities', hasSubs: true, subs: ['Labs', 'Classrooms'] },
+    { name: 'Student Welfare', hasSubs: true, subs: ['Counseling', 'Grievance'] },
     { name: 'Self Learning', hasSubs: false },
     { name: 'Career Guidance', hasSubs: false },
-    { name: 'Alumni', hasSubs: true },
+    { name: 'Alumni', hasSubs: true, subs: ['Alumni Directory', 'Events'] },
     { name: 'Faculty', hasSubs: false },
     { name: 'Feedback', hasSubs: false },
     { name: 'Best Practices & Innovations', hasSubs: false },
@@ -208,11 +212,13 @@ const DepartmentDetail = () => {
                   </button>
                   
                   {/* Expanded Sub-menu Placeholders */}
-                  {isExpanded && menu.hasSubs && (
+                  {isExpanded && menu.hasSubs && menu.subs && (
                     <div className="bg-white px-4 py-2 flex flex-col">
-                      <Link to="#" className="text-sm text-gray-600 py-2 border-b border-gray-100 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2"><ChevronRight size={14}/> Placeholder Section 1</Link>
-                      <Link to="#" className="text-sm text-gray-600 py-2 border-b border-gray-100 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2"><ChevronRight size={14}/> Placeholder Section 2</Link>
-                      <Link to="#" className="text-sm text-gray-600 py-2 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2"><ChevronRight size={14}/> Placeholder Section 3</Link>
+                      {menu.subs.map((subItem, sIdx) => (
+                        <Link key={sIdx} to="#" className={`text-sm text-gray-600 py-2 border-b border-gray-100 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2 ${sIdx === menu.subs.length - 1 ? 'border-b-0' : ''}`}>
+                          <ChevronRight size={14}/> {subItem}
+                        </Link>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -296,8 +302,43 @@ const DepartmentDetail = () => {
           {/* PEOs, PSOs and POs Section */}
           <section id="peos">
             <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Department PEOs, PSOs and POs</h2>
-            <div className="bg-white shadow-sm border border-gray-100 p-4">
-              <button className="text-[#1e3a8a] text-sm font-semibold hover:underline">View detailed PEOs, PSOs and POs</button>
+            <div className="bg-white shadow-sm border border-gray-100 p-8 border-l-4 border-l-yellow-400">
+              
+              <div className="mb-8">
+                <h3 className="font-bold text-gray-900 mb-3">Program Educational Objectives (PEOs)</h3>
+                <ul className="list-decimal pl-5 space-y-2 text-sm text-gray-600">
+                  <li><strong>PEO 1:</strong> To produce graduates with a strong foundation in basic sciences and engineering.</li>
+                  <li><strong>PEO 2:</strong> To equip students with the skills to design, develop, and solve complex problems in their respective fields.</li>
+                  <li><strong>PEO 3:</strong> To instill professional ethics, teamwork, and leadership qualities for successful careers and continuous learning.</li>
+                </ul>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-bold text-gray-900 mb-3">Program Outcomes (POs)</h3>
+                <ul className="space-y-3 text-sm text-gray-600">
+                  <li><strong>1. Engineering Knowledge:</strong> Apply the knowledge of mathematics, science, engineering fundamentals to the solution of complex engineering problems.</li>
+                  <li><strong>2. Problem Analysis:</strong> Identify, formulate, review research literature, and analyze complex engineering problems.</li>
+                  <li><strong>3. Design/development of solutions:</strong> Design solutions for complex engineering problems and design system components.</li>
+                  <li><strong>4. Conduct investigations of complex problems:</strong> Use research-based knowledge and research methods.</li>
+                  <li><strong>5. Modern tool usage:</strong> Create, select, and apply appropriate techniques and modern engineering and IT tools.</li>
+                  <li><strong>6. The engineer and society:</strong> Apply reasoning informed by the contextual knowledge to assess societal, health, safety issues.</li>
+                  <li><strong>7. Environment and sustainability:</strong> Understand the impact of the professional engineering solutions in environmental contexts.</li>
+                  <li><strong>8. Ethics:</strong> Apply ethical principles and commit to professional ethics and responsibilities.</li>
+                  <li><strong>9. Individual and team work:</strong> Function effectively as an individual, and as a member or leader in diverse teams.</li>
+                  <li><strong>10. Communication:</strong> Communicate effectively on complex engineering activities with the engineering community.</li>
+                  <li><strong>11. Project management and finance:</strong> Demonstrate knowledge and understanding of the engineering and management principles.</li>
+                  <li><strong>12. Life-long learning:</strong> Recognize the need for, and have the preparation and ability to engage in independent life-long learning.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-gray-900 mb-3">Program Specific Outcomes (PSOs)</h3>
+                <ul className="list-decimal pl-5 space-y-2 text-sm text-gray-600">
+                  <li><strong>PSO 1:</strong> Apply modern tools, programming languages, and frameworks to develop efficient solutions for real-world applications.</li>
+                  <li><strong>PSO 2:</strong> Design and implement scalable architectures that meet industry standards.</li>
+                </ul>
+              </div>
+
             </div>
           </section>
 

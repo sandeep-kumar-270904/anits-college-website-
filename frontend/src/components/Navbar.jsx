@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, Menu, X, Phone } from 'lucide-react';
+import { ChevronDown, ChevronRight, Menu, X, Phone } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,12 +51,19 @@ const Navbar = () => {
                 <Link to="/academics/exams">Exam Section</Link>
               </NavItem>
               <NavItem title="Departments" to="/departments">
-                <Link to="/departments/cse">Computer Science and Eng.</Link>
-                <Link to="/departments/it">Information Technology</Link>
-                <Link to="/departments/ece">Electronics & Comm. Eng.</Link>
-                <Link to="/departments/eee">Electrical & Electronics</Link>
-                <Link to="/departments/mech">Mechanical Engineering</Link>
+                <Link to="/departments/chemical">Chemical Engineering</Link>
                 <Link to="/departments/civil">Civil Engineering</Link>
+                <Link to="/departments/cse">Computer Science and Engineering</Link>
+                <Link to="/departments/cse-aiml">Computer Science and Engineering (AI&ML)</Link>
+                <Link to="/departments/cse-ds">Computer Science and Engineering (DS)</Link>
+                <Link to="/departments/eee">Electrical & Electronics Eng.</Link>
+                <Link to="/departments/ece">Electronics & Communication Eng.</Link>
+                <Link to="/departments/it">Information Technology</Link>
+                <Link to="/departments/mech">Mechanical Engineering</Link>
+                <Link to="/departments/mba">MBA (Hospital Administration)</Link>
+                <Link to="/departments/bsh" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  Basic Sciences & Humanities <ChevronRight size={14}/>
+                </Link>
               </NavItem>
               <Link to="/rd" className="gh-nav-link">R&D</Link>
               <Link to="/iqac" className="gh-nav-link">IQAC</Link>
