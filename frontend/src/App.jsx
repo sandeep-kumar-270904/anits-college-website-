@@ -16,6 +16,29 @@ import Placements from './pages/Placements';
 import DepartmentDetail from './pages/DepartmentDetail';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import Principal from './pages/Principal';
+import Team from './pages/Team';
+import Committees from './pages/Committees';
+import AcademicCouncil from './pages/AcademicCouncil';
+import OrganizationChart from './pages/OrganizationChart';
+import Library from './pages/Library';
+import Syllabus from './pages/Syllabus';
+import Nss from './pages/Nss';
+import Facilities from './pages/Facilities';
+import HealthCentre from './pages/HealthCentre';
+import Atm from './pages/Atm';
+import ComputerCentre from './pages/ComputerCentre';
+import YogaCentre from './pages/YogaCentre';
+import RainwaterHarvesting from './pages/RainwaterHarvesting';
+import Ncc from './pages/Ncc';
+import Transport from './pages/Transport';
+import Canteen from './pages/Canteen';
+import Hostel from './pages/Hostel';
+import Gymnasium from './pages/Gymnasium';
+import Policies from './pages/Policies';
+import WomenEmpowerment from './pages/WomenEmpowerment';
+import WomenGrievance from './pages/WomenGrievance';
+import Iqac from './pages/Iqac';
 
 function App() {
   return (
@@ -27,8 +50,33 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
+              <Route path="/about/glance" element={<About />} />
+              <Route path="/about/principal" element={<Principal />} />
+              <Route path="/about/team" element={<Team />} />
+              <Route path="/about/committees" element={<Committees />} />
+              <Route path="/about/academic-council" element={<AcademicCouncil />} />
+              <Route path="/about/organization-chart" element={<OrganizationChart />} />
               <Route path="/admissions" element={<Admissions />} />
+              <Route path="/academics/syllabus" element={<Syllabus />} />
+              <Route path="/policies" element={<Policies />} />
+              <Route path="/iqac" element={<Iqac />} />
+              <Route path="/women-cell/empowerment" element={<WomenEmpowerment />} />
+              <Route path="/women-cell/grievance" element={<WomenGrievance />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/facilities/nss" element={<Nss />} />
+              <Route path="/training" element={<Placements />} />
               <Route path="/placements" element={<Placements />} />
+              <Route path="/facilities" element={<Facilities />} />
+              <Route path="/facilities/health-centre" element={<HealthCentre />} />
+              <Route path="/facilities/atm" element={<Atm />} />
+              <Route path="/facilities/computer-centre" element={<ComputerCentre />} />
+              <Route path="/facilities/yoga" element={<YogaCentre />} />
+              <Route path="/facilities/rainwater-harvesting" element={<RainwaterHarvesting />} />
+              <Route path="/facilities/ncc" element={<Ncc />} />
+              <Route path="/facilities/transport" element={<Transport />} />
+              <Route path="/facilities/canteen" element={<Canteen />} />
+              <Route path="/facilities/hostel" element={<Hostel />} />
+              <Route path="/facilities/gymnasium" element={<Gymnasium />} />
               <Route path="/departments" element={<Departments />} />
               <Route path="/departments/:id" element={<DepartmentDetail />} />
               <Route path="/faculty" element={<Faculty />} />

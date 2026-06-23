@@ -1,12 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle } from 'lucide-react';
+import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  
+  // Syllabus state
+  const [syllabusYear, setSyllabusYear] = useState('Academic Year 2025-26');
+  const [syllabusProgram, setSyllabusProgram] = useState('');
+  const [syllabusFile, setSyllabusFile] = useState(null);
+  const [syllabusUploadStatus, setSyllabusUploadStatus] = useState('');
+
+  // Policy state
+  const [policyName, setPolicyName] = useState('Research and Development Policy');
+  const [policyFile, setPolicyFile] = useState(null);
+  const [policyUploadStatus, setPolicyUploadStatus] = useState('');
+
+  const policiesList = [
+    "Research and Development Policy", "Innovation and Entrepreneurship Policy", "Institutional Ethics Policy",
+    "IPR Policy", "IT Policy", "Maintenance Policy", "Placement Policy", "Non-Teaching Staff Welfare Policy",
+    "E- Governance Policy", "Recruitment Policy", "Promotion Policy", "Maternity Leave Policy",
+    "E- Waste Management Policy", "Waste management Policy", "Energy Policy", "Environmental Policy",
+    "Green Campus Policy", "Code of Conduct", "Divyangjan Policy", "Anti-Ragging Policy", "RTI Policy"
+  ];
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,6 +92,86 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSyllabusFileChange = (e) => {
+    setSyllabusFile(e.target.files[0]);
+  };
+
+  const handleSyllabusUpload = async (e) => {
+    e.preventDefault();
+    if (!syllabusFile) {
+      setSyllabusUploadStatus('Please select a PDF file first.');
+      return;
+    }
+    if (!syllabusProgram) {
+      setSyllabusUploadStatus('Please enter a program name.');
+      return;
+    }
+    
+    setSyllabusUploadStatus('Uploading...');
+    const formData = new FormData();
+    formData.append('academic_year', syllabusYear);
+    formData.append('program', syllabusProgram);
+    formData.append('file', syllabusFile);
+    
+    const token = localStorage.getItem('adminToken');
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/upload_syllabus', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSyllabusUploadStatus(`Upload successful! Added to ${syllabusYear}.`);
+        setSyllabusFile(null);
+        setSyllabusProgram('');
+      } else {
+        setSyllabusUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setSyllabusUploadStatus('Upload error');
+    }
+  };
+
+  const handlePolicyFileChange = (e) => {
+    setPolicyFile(e.target.files[0]);
+  };
+
+  const handlePolicyUpload = async (e) => {
+    e.preventDefault();
+    if (!policyFile) {
+      setPolicyUploadStatus('Please select a PDF file first.');
+      return;
+    }
+    
+    setPolicyUploadStatus('Uploading...');
+    const formData = new FormData();
+    formData.append('policy_name', policyName);
+    formData.append('file', policyFile);
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    
+    try {
+      const response = await fetch(`${API_URL}/api/upload_policy`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setPolicyUploadStatus(`Upload successful! ${policyName} updated.`);
+        setPolicyFile(null);
+      } else {
+        setPolicyUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setPolicyUploadStatus('Upload error');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     window.location.href = '/';
@@ -129,6 +229,120 @@ const AdminDashboard = () => {
               <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${uploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
                 {uploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                 {uploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Syllabus Upload Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <BookOpen className="text-purple-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Syllabus Downloads</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Upload syllabus PDFs. They will immediately appear on the public Syllabus & Downloads page under the selected Academic Year.</p>
+            
+            <form onSubmit={handleSyllabusUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Academic Year</label>
+                  <select 
+                    value={syllabusYear}
+                    onChange={(e) => setSyllabusYear(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="Academic Year 2025-26">Academic Year 2025-26</option>
+                    <option value="Academic Year 2024-25">Academic Year 2024-25</option>
+                    <option value="Academic Year 2023-24">Academic Year 2023-24</option>
+                    <option value="Academic Year 2022-23">Academic Year 2022-23</option>
+                    <option value="Academic Year 2021-22">Academic Year 2021-22</option>
+                    <option value="Academic Year 2020-21">Academic Year 2020-21</option>
+                    <option value="Academic Year 2019-20">Academic Year 2019-20</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Program Name</label>
+                  <input 
+                    type="text" 
+                    value={syllabusProgram}
+                    onChange={(e) => setSyllabusProgram(e.target.value)}
+                    placeholder="e.g. First Year UG Courses"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mt-2">
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  onChange={handleSyllabusFileChange} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition-all cursor-pointer border border-gray-200 rounded-xl"
+                />
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Upload Syllabus
+                </button>
+              </div>
+            </form>
+
+            {syllabusUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${syllabusUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {syllabusUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {syllabusUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Policy Upload Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <FileText className="text-emerald-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage College Policies</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Upload policy PDFs. They will immediately appear on the public Policies page as clickable View links.</p>
+            
+            <form onSubmit={handlePolicyUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Select Policy</label>
+                  <select 
+                    value={policyName}
+                    onChange={(e) => setPolicyName(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  >
+                    {policiesList.map((policy, idx) => (
+                      <option key={idx} value={policy}>{policy}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mt-2">
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  onChange={handlePolicyFileChange} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-all cursor-pointer border border-gray-200 rounded-xl"
+                />
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Upload Policy
+                </button>
+              </div>
+            </form>
+
+            {policyUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${policyUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {policyUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {policyUploadStatus}
               </div>
             )}
           </div>

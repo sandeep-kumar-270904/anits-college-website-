@@ -19,6 +19,8 @@ from flask_limiter.util import get_remote_address
 from functools import lru_cache, wraps
 import jwt
 from werkzeug.utils import secure_filename
+import uuid
+from flask import send_from_directory
 
 # Load API keys from .env
 load_dotenv()
@@ -66,6 +68,19 @@ try:
 except Exception as e:
     print("MongoDB connection error:", e)
     print("App will run without database logging.")
+
+# Syllabus Data Handling (Local JSON Fallback for reliability)
+syllabus_file_path = "../data/syllabus.json"
+def load_syllabus():
+    if os.path.exists(syllabus_file_path):
+        with open(syllabus_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_syllabus(data):
+    os.makedirs(os.path.dirname(syllabus_file_path), exist_ok=True)
+    with open(syllabus_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
 
 # PDF Loader
 @lru_cache(maxsize=1)
@@ -152,6 +167,88 @@ def upload_circular():
         return jsonify({"message": f"Successfully uploaded {filename}"})
     
     return jsonify({"error": "Only PDF files are allowed"}), 400
+
+@app.route("/api/upload_syllabus", methods=["POST"])
+@token_required
+def upload_syllabus():
+    academic_year = request.form.get("academic_year")
+    program = request.form.get("program")
+    
+    if not academic_year or not program:
+        return jsonify({"error": "Academic year and program are required"}), 400
+        
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+        
+    if file and file.filename.endswith(".pdf"):
+        # Generate unique filename to avoid overwrites
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"syllabus_{unique_id}_{secure_filename(file.filename)}"
+        
+        pdf_dir = "../data/syllabus_files"
+        os.makedirs(pdf_dir, exist_ok=True)
+        file.save(os.path.join(pdf_dir, filename))
+        
+        # Save to JSON
+        syllabus_data = load_syllabus()
+        new_entry = {
+            "id": unique_id,
+            "academic_year": academic_year,
+            "program": program,
+            "filename": filename,
+            "upload_date": datetime.utcnow().isoformat()
+        }
+        syllabus_data.append(new_entry)
+        save_syllabus(syllabus_data)
+        
+        return jsonify({"message": f"Successfully uploaded syllabus for {program}"})
+        
+    return jsonify({"error": "Only PDF files are allowed"}), 400
+
+@app.route("/api/syllabus", methods=["GET"])
+def get_syllabus():
+    data = load_syllabus()
+    return jsonify(data)
+
+@app.route("/api/syllabus_file/<filename>")
+def serve_syllabus_file(filename):
+    pdf_dir = "../data/syllabus_files"
+    return send_from_directory(pdf_dir, filename)
+
+@app.route("/api/upload_policy", methods=["POST"])
+@token_required
+def upload_policy():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    policy_name = request.form.get("policy_name")
+    
+    if not policy_name:
+        return jsonify({"error": "Policy name is required"}), 400
+        
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+        
+    if file and file.filename.endswith(".pdf"):
+        # Format the policy name to be URL-safe (e.g., "IT Policy" -> "it-policy")
+        formatted_name = policy_name.lower().replace(" ", "-").replace("/", "-")
+        filename = f"{formatted_name}.pdf"
+        
+        pdf_dir = "../data/policies"
+        os.makedirs(pdf_dir, exist_ok=True)
+        file.save(os.path.join(pdf_dir, filename))
+        
+        return jsonify({"message": f"Successfully uploaded {policy_name}"})
+        
+    return jsonify({"error": "Only PDF files are allowed"}), 400
+
+@app.route("/api/policy_file/<filename>")
+def serve_policy_file(filename):
+    pdf_dir = "../data/policies"
+    return send_from_directory(pdf_dir, filename)
 
 MAX_MESSAGE_LENGTH = 5000
 

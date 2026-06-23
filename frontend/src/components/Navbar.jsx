@@ -56,14 +56,17 @@ const Navbar = () => {
                 <Link to="/departments/ece">Electronics & Comm. Eng.</Link>
                 <Link to="/departments/mech">Mechanical Engineering</Link>
               </NavItem>
-              <Link to="/placements" className="gh-nav-link">Placements</Link>
-              <NavItem title="More" to="#">
-                <Link to="/faq">FAQ</Link>
-                <Link to="/iqac">IQAC</Link>
-                <Link to="/woman-cell">Woman Cell</Link>
-                <Link to="/library">Library</Link>
-                <Link to="/facilities">Facilities</Link>
+              <Link to="/rd" className="gh-nav-link">R&D</Link>
+              <Link to="/iqac" className="gh-nav-link">IQAC</Link>
+              <NavItem title="Woman Cell" to="/women-cell">
+                <Link to="/women-cell/empowerment">Women Empowerment</Link>
+                <Link to="/women-cell/grievance">Women Grievance & Redressal Committee</Link>
               </NavItem>
+              <Link to="/policies" className="gh-nav-link">Policies</Link>
+              <Link to="/library" className="gh-nav-link">Library</Link>
+              <Link to="/training" className="gh-nav-link">Training</Link>
+              <Link to="/placements" className="gh-nav-link">Placements</Link>
+              <Link to="/facilities" className="gh-nav-link">Facilities</Link>
             </div>
           </div>
 
