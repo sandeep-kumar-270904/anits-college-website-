@@ -39,12 +39,15 @@ import Policies from './pages/Policies';
 import WomenEmpowerment from './pages/WomenEmpowerment';
 import WomenGrievance from './pages/WomenGrievance';
 import Iqac from './pages/Iqac';
+import Research from './pages/Research';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <HelmetProvider>
       <Router>
-        <div className="app-container">
+        <ScrollToTop />
+        <div className="flex flex-col min-h-screen">
           <Navbar />
           <main>
             <Routes>
@@ -60,6 +63,7 @@ function App() {
               <Route path="/academics/syllabus" element={<Syllabus />} />
               <Route path="/policies" element={<Policies />} />
               <Route path="/iqac" element={<Iqac />} />
+              <Route path="/rd" element={<Research />} />
               <Route path="/women-cell/empowerment" element={<WomenEmpowerment />} />
               <Route path="/women-cell/grievance" element={<WomenGrievance />} />
               <Route path="/library" element={<Library />} />

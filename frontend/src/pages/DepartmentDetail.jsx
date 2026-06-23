@@ -1,183 +1,379 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Users, FlaskConical, Award } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Minus, ChevronLeft } from 'lucide-react';
 
-const mockDepartmentData = {
+// Shared Mock Data for Departments
+const departmentData = {
+  it: {
+    name: "Information Technology",
+    shortName: "IT",
+    hodName: "Prof. P. Padmaja",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of Information Technology",
+    hodMessage: "Dear Student Members, Staff and Parents, Welcome to the Department of Information Technology. We strongly believe that you are going to experience a rewarding learning curve. Our department is committed to producing top-notch IT professionals. We constantly update our curriculum to meet the demands of the ever-changing IT sector. We encourage students to actively participate in coding competitions, hackathons, and technical symposiums to enhance their practical skills and team spirit.",
+    vision: "Department of IT envisions building a continuous learning environment involving modern technological tools and software for maximum outcome for the emerging IT Professionals.",
+    mission: [
+      "Provide skill-oriented education to meet the global demands of the IT Industry.",
+      "Imparting the best theoretical knowledge along with practical training.",
+      "To produce professionals capable of applying logic to practical problems.",
+      "To promote research and innovation among students and staff."
+    ],
+    admissions: {
+      btech: 180,
+      facultyStrength: 33,
+      programs: "B.Tech (IT), M.Tech (IT)"
+    },
+    programs: [
+      { level: "UG", name: "B.Tech - Information Technology", duration: "4 Years", intake: 180 },
+      { level: "PG", name: "M.Tech - Data Science", duration: "2 Years", intake: 18 }
+    ],
+    history: [
+      { year: "2001", text: "B.Tech (IT) started with an intake of 60 students." },
+      { year: "2007", text: "Intake increased to 120 students." },
+      { year: "2012", text: "B.Tech intake increased to 180 students." },
+      { year: "2017", text: "Introduced M.Tech in Data Science." }
+    ],
+    highlights: "The IT Department has achieved incredible academic milestones, including high pass percentages and top university ranks. Our students consistently secure high-paying jobs in top MNCs like TCS, Infosys, Amazon, and Wipro. The department regularly conducts workshops, seminars, and FDPs."
+  },
   cse: {
     name: "Computer Science & Engineering",
-    hod: "Dr. Mock Professor",
-    established: "2001",
-    vision: "To be a center of excellence in computer science and engineering education, research, and application.",
-    mission: [
-      "Provide high-quality education in computer science.",
-      "Foster research and innovation in emerging technologies like AI and ML.",
-      "Build strong industry-academia collaborations."
-    ],
-    facultyCount: 45,
-    labs: ["AI & Deep Learning Lab", "IoT & Cloud Computing Lab", "Cybersecurity Lab"],
-    achievements: ["NBA Accredited", "100% Placement Record", "Multiple hackathon victories at national level"]
+    shortName: "CSE",
+    hodName: "Dr. R. Sivaranjani",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of CSE",
+    hodMessage: "Welcome to the CSE Department. We aim to shape the future tech leaders by providing cutting-edge knowledge in AI, Machine Learning, and Cloud Computing.",
+    vision: "To be a center of excellence in computer science education and research.",
+    mission: ["Deliver high-quality education.", "Foster innovation.", "Build strong industry ties."],
+    admissions: { btech: 240, facultyStrength: 45, programs: "B.Tech, M.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - CSE", duration: "4 Years", intake: 240 }],
+    history: [{ year: "2001", text: "CSE Department Established." }],
+    highlights: "NBA Accredited, high placement records, and multiple hackathon winners."
   },
   ece: {
-    name: "Electronics & Communication",
-    hod: "Dr. Signal Processing",
-    established: "2001",
-    vision: "To produce globally competitive electronics and communication engineers.",
-    mission: [
-      "Impart strong theoretical foundation and practical skills.",
-      "Encourage research in VLSI, IoT, and embedded systems."
-    ],
-    facultyCount: 38,
-    labs: ["VLSI Design Lab", "Microwave Engineering Lab", "Microprocessor Lab"],
-    achievements: ["Funded research projects by AICTE", "Active IEEE Student Branch"]
+    name: "Electronics & Communication Engineering",
+    shortName: "ECE",
+    hodName: "Dr. V. Rajyalakshmi",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of ECE",
+    hodMessage: "Welcome to the ECE Department. We offer robust training in hardware and software design, preparing students for the telecom and VLSI sectors.",
+    vision: "To produce globally competitive electronics engineers.",
+    mission: ["Impart strong fundamentals.", "Encourage R&D in emerging areas."],
+    admissions: { btech: 180, facultyStrength: 38, programs: "B.Tech, M.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - ECE", duration: "4 Years", intake: 180 }],
+    history: [{ year: "2001", text: "ECE Department Established." }],
+    highlights: "Strong alumni network and AICTE funded projects."
   },
   mech: {
     name: "Mechanical Engineering",
-    hod: "Dr. Thermo Dynamics",
-    established: "2005",
-    vision: "To develop skilled mechanical engineers capable of solving global industrial challenges.",
-    mission: [
-      "Provide state-of-the-art manufacturing training.",
-      "Promote research in robotics and thermal engineering."
-    ],
-    facultyCount: 30,
-    labs: ["CAD/CAM Lab", "Heat Transfer Lab", "Robotics Lab"],
-    achievements: ["SAE Baja National Participants", "Advanced 3D Printing Facility"]
+    shortName: "MECH",
+    hodName: "Prof. B.N.D. Narasinga Rao",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of MECH",
+    hodMessage: "Welcome to the Mechanical Engineering Department. We focus on hands-on practical skills in robotics, thermal engineering, and manufacturing.",
+    vision: "To develop skilled mechanical engineers for global challenges.",
+    mission: ["Provide state-of-the-art training.", "Promote research."],
+    admissions: { btech: 120, facultyStrength: 30, programs: "B.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - MECH", duration: "4 Years", intake: 120 }],
+    history: [{ year: "2005", text: "MECH Department Established." }],
+    highlights: "Advanced CAD/CAM labs and active SAE Baja teams."
   },
   eee: {
-    name: "Electrical & Electronics",
-    hod: "Dr. Power Systems",
-    established: "2001",
-    vision: "To excel in electrical engineering education with a focus on sustainable energy.",
-    mission: [
-      "Train students in smart grids and renewable energy.",
-      "Collaborate with power industries for practical exposure."
-    ],
-    facultyCount: 28,
-    labs: ["Power Electronics Lab", "Control Systems Lab", "Electrical Machines Lab"],
-    achievements: ["Top energy audit initiatives", "Smart Grid Research Center"]
-  },
-  it: {
-    name: "Information Technology",
-    hod: "Dr. Cloud Architect",
-    established: "2006",
-    vision: "To empower students with cutting-edge IT skills for the global software industry.",
-    mission: [
-      "Deliver curriculum aligned with modern software practices.",
-      "Encourage open-source contributions and entrepreneurship."
-    ],
-    facultyCount: 32,
-    labs: ["Data Science Lab", "Web Tech Lab", "Mobile App Dev Lab"],
-    achievements: ["Excellence in Enterprise Software Solutions", "High placement packages in top MNCs"]
+    name: "Electrical & Electronics Engineering",
+    shortName: "EEE",
+    hodName: "Dr. G. Jagadeesh",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of EEE",
+    hodMessage: "Welcome to EEE. We empower students to innovate in power systems, smart grids, and renewable energy technologies.",
+    vision: "To excel in electrical engineering education.",
+    mission: ["Train in renewable energy.", "Industry collaboration."],
+    admissions: { btech: 120, facultyStrength: 28, programs: "B.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - EEE", duration: "4 Years", intake: 120 }],
+    history: [{ year: "2001", text: "EEE Department Established." }],
+    highlights: "Excellent energy audit initiatives."
   },
   civil: {
     name: "Civil Engineering",
-    hod: "Dr. Structural Design",
-    established: "2010",
-    vision: "To build a foundation for sustainable infrastructure through quality civil engineering education.",
-    mission: [
-      "Impart knowledge in structural and environmental engineering.",
-      "Promote smart city development methodologies."
-    ],
-    facultyCount: 25,
-    labs: ["Concrete Tech Lab", "Surveying Lab", "Fluid Mechanics Lab"],
-    achievements: ["Consultancy projects for local government", "Award-winning sustainable design projects"]
+    shortName: "CIVIL",
+    hodName: "Dr. J. Vikranth",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of Civil",
+    hodMessage: "Welcome to Civil Engineering. We build the foundation of the future through sustainable infrastructure and smart city development.",
+    vision: "To build sustainable infrastructure.",
+    mission: ["Quality civil education.", "Smart city methodologies."],
+    admissions: { btech: 60, facultyStrength: 25, programs: "B.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - CIVIL", duration: "4 Years", intake: 60 }],
+    history: [{ year: "2010", text: "Civil Department Established." }],
+    highlights: "Award-winning structural design projects."
   }
 };
 
 const DepartmentDetail = () => {
   const { id } = useParams();
-  const dept = mockDepartmentData[id];
+  const dept = departmentData[id] || departmentData['it']; // fallback to IT
+  const [expandedMenus, setExpandedMenus] = useState(['Department Profile']);
 
-  if (!dept) {
-    return (
-      <div className="section text-center" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div>
-          <h2>Department Not Found</h2>
-          <Link to="/departments" className="btn btn-primary" style={{marginTop: '1rem'}}>Go Back</Link>
-        </div>
-      </div>
+  // Sidebar Menu Structure
+  const sidebarMenus = [
+    { name: 'Department Profile', hasSubs: true },
+    { name: 'Academics', hasSubs: true },
+    { name: 'R&D', hasSubs: true },
+    { name: 'Student Activities', hasSubs: true },
+    { name: 'Placements', hasSubs: true },
+    { name: 'Infrastructure & Facilities', hasSubs: true },
+    { name: 'Student Welfare', hasSubs: true },
+    { name: 'Self Learning', hasSubs: false },
+    { name: 'Career Guidance', hasSubs: false },
+    { name: 'Alumni', hasSubs: true },
+    { name: 'Faculty', hasSubs: false },
+    { name: 'Feedback', hasSubs: false },
+    { name: 'Best Practices & Innovations', hasSubs: false },
+    { name: 'Photo Gallery', hasSubs: false },
+    { name: 'Contact', hasSubs: false },
+  ];
+
+  const toggleMenu = (menuName) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuName) 
+        ? prev.filter(item => item !== menuName)
+        : [...prev, menuName]
     );
-  }
+  };
+
+  const scrollToSection = (sectionId) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const yOffset = -150; 
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({top: y, behavior: 'smooth'});
+    }
+  };
 
   return (
-    <>
+    <div className="font-sans min-h-screen bg-[#f8f9fa] pt-[80px]">
       <Helmet>
         <title>{dept.name} | ANITS</title>
       </Helmet>
 
-      <div className="page-header" style={{ background: 'linear-gradient(135deg, var(--primary-dark), #1a365d)', paddingBottom: '80px' }}>
-        <div className="container animate-fade-in">
-          <Link to="/departments" style={{ color: 'rgba(255,255,255,0.8)', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-            <ArrowLeft size={16} /> Back to Departments
-          </Link>
-          <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>{dept.name}</h1>
-          <div style={{ display: 'flex', gap: '2rem', color: 'rgba(255,255,255,0.9)', flexWrap: 'wrap' }}>
-            <span style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><Users size={18}/> Head of Department: {dept.hod}</span>
-            <span style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><BookOpen size={18}/> Established: {dept.established}</span>
-            <span style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><Award size={18}/> Faculty Members: {dept.facultyCount}</span>
-          </div>
+      {/* Blue Top Nav Bar */}
+      <div className="w-full bg-[#e6f0fa] border-b border-[#c4d9f2] py-3 px-4 md:px-12 flex justify-between items-center sticky top-[80px] z-30 shadow-sm">
+        <h2 className="text-[#1e3a8a] font-bold text-lg md:text-xl uppercase">{dept.name}</h2>
+        <button className="bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors shadow-sm">
+          Explore {dept.shortName} <ChevronDown size={16} />
+        </button>
+      </div>
+
+      {/* Main Image Carousel Placeholder */}
+      <div className="w-full h-[250px] md:h-[450px] bg-gray-300 relative group overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-800/30">
+          <span className="text-white font-bold text-xl md:text-3xl tracking-wider">[ CAROUSEL PLACEHOLDER ]</span>
+        </div>
+        {/* Carousel controls mock */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/40 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/60"><ChevronLeft /></div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/40 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/60"><ChevronRight /></div>
+      </div>
+
+      {/* Horizontal Quick Links Pill Menu */}
+      <div className="w-full bg-white shadow-sm border-b border-gray-100 overflow-x-auto">
+        <div className="max-w-7xl mx-auto flex gap-4 px-4 py-4 min-w-max">
+          <button onClick={() => scrollToSection('hod')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">Message from HoD</button>
+          <button onClick={() => scrollToSection('overview')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">Vision & Mission</button>
+          <button onClick={() => scrollToSection('peos')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">PEOs, PSOs & POs</button>
+          <button onClick={() => scrollToSection('programs')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">Programs Offered</button>
+          <button onClick={() => scrollToSection('history')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">Dept. History</button>
+          <button onClick={() => scrollToSection('highlights')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">Dept. Highlights</button>
+          <button onClick={() => scrollToSection('gallery')} className="px-5 py-2 rounded-full border border-blue-200 text-blue-800 bg-blue-50 text-sm font-semibold hover:bg-blue-100 transition-colors">Photo Gallery</button>
         </div>
       </div>
 
-      <div className="section bg-light" style={{ marginTop: '-40px', paddingTop: '0' }}>
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', position: 'relative', zIndex: 10 }}>
-            
-            {/* Left Column: Vision & Mission */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div className="card animate-fade-in delay-100">
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                  <Globe size={24} /> Vision
-                </h3>
-                <p style={{ fontSize: '1.1rem', fontStyle: 'italic', color: 'var(--text-muted)' }}>"{dept.vision}"</p>
-              </div>
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row mt-8 px-4 pb-16 gap-8">
+        
+        {/* Left Sidebar (Accordion) */}
+        <div className="w-full md:w-1/4 flex-shrink-0">
+          <div className="bg-[#f1f5f9] rounded-sm overflow-hidden border border-gray-200 shadow-sm md:sticky md:top-[160px]">
+            {sidebarMenus.map((menu, idx) => {
+              const isExpanded = expandedMenus.includes(menu.name);
+              return (
+                <div key={idx} className="border-b border-white last:border-b-0">
+                  <button 
+                    onClick={() => menu.hasSubs && toggleMenu(menu.name)}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-sm font-semibold transition-colors ${isExpanded && menu.hasSubs ? 'bg-[#1e3a8a] text-white' : 'bg-[#e2e8f0] text-gray-800 hover:bg-[#cbd5e1]'}`}
+                  >
+                    <span>{menu.name}</span>
+                    {menu.hasSubs && (
+                      <span className={`p-1 rounded ${isExpanded ? 'bg-white/20' : 'bg-white'}`}>
+                        {isExpanded ? <Minus size={14} className={isExpanded ? 'text-white' : 'text-[#1e3a8a]'} /> : <Plus size={14} className="text-[#1e3a8a]" />}
+                      </span>
+                    )}
+                  </button>
+                  
+                  {/* Expanded Sub-menu Placeholders */}
+                  {isExpanded && menu.hasSubs && (
+                    <div className="bg-white px-4 py-2 flex flex-col">
+                      <Link to="#" className="text-sm text-gray-600 py-2 border-b border-gray-100 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2"><ChevronRight size={14}/> Placeholder Section 1</Link>
+                      <Link to="#" className="text-sm text-gray-600 py-2 border-b border-gray-100 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2"><ChevronRight size={14}/> Placeholder Section 2</Link>
+                      <Link to="#" className="text-sm text-gray-600 py-2 hover:text-blue-600 transition-colors pl-2 flex items-center gap-2"><ChevronRight size={14}/> Placeholder Section 3</Link>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
 
-              <div className="card animate-fade-in delay-200">
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                  <Award size={24} /> Mission
-                </h3>
-                <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {dept.mission.map((item, i) => <li key={i}>{item}</li>)}
-                </ul>
+        {/* Main Content Sections */}
+        <div className="w-full md:w-3/4 flex flex-col gap-12">
+          
+          {/* HOD Section */}
+          <section id="hod">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Message from Head of Department</h2>
+            <div className="bg-white p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6">
+              <div className="w-full md:w-1/4 flex flex-col items-center flex-shrink-0">
+                <div className="w-40 h-48 bg-gray-200 mb-4 object-cover overflow-hidden border border-gray-300">
+                   {/* We will load image later, placeholder for now */}
+                   <img 
+                    src={`/images/${dept.hodName}.png`} 
+                    alt={dept.hodName} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                   />
+                </div>
+                <h4 className="font-bold text-gray-900 text-center text-sm">{dept.hodName}</h4>
+                <p className="text-gray-500 text-xs text-center mt-1 font-medium">{dept.hodTitle}</p>
+                <p className="text-gray-500 text-xs text-center">{dept.hodRole}</p>
+              </div>
+              <div className="w-full md:w-3/4">
+                <p className="text-gray-600 text-sm leading-relaxed text-justify mb-4">
+                  {dept.hodMessage}
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed text-justify font-medium italic">
+                  "Wishing you all a successful and rewarding journey ahead!"
+                </p>
               </div>
             </div>
+          </section>
 
-            {/* Right Column: Labs & Achievements */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div className="card animate-fade-in delay-200">
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                  <FlaskConical size={24} /> Key Laboratories
-                </h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-                  {dept.labs.map((lab, i) => (
-                    <span key={i} style={{ background: 'rgba(0, 77, 153, 0.1)', color: 'var(--primary)', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '500' }}>
-                      {lab}
-                    </span>
-                  ))}
+          {/* Overview Section */}
+          <section id="overview">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Department Overview</h2>
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Vision & Mission */}
+              <div className="w-full lg:w-2/3 bg-white shadow-sm border border-gray-100 p-6 flex flex-col gap-6">
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm mb-3">Vision</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{dept.vision}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm mb-3">Mission</h3>
+                  <ul className="list-disc pl-5 space-y-1.5">
+                    {dept.mission.map((m, i) => (
+                      <li key={i} className="text-gray-600 text-sm leading-relaxed">{m}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
-              <div className="card animate-fade-in delay-300">
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                  <Award size={24} /> Key Achievements
-                </h3>
-                <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {dept.achievements.map((ach, i) => <li key={i}>{ach}</li>)}
-                </ul>
+              {/* Quick Details Box */}
+              <div className="w-full lg:w-1/3 flex flex-col gap-4">
+                <div className="bg-white shadow-sm border border-gray-100 p-5 border-l-4 border-l-blue-600">
+                  <h4 className="font-bold text-gray-900 mb-3 text-sm">Admissions</h4>
+                  <ul className="space-y-2">
+                    <li className="text-xs text-gray-600 flex items-center gap-2"><ChevronRight size={12} className="text-blue-500"/> Intake (B.Tech): {dept.admissions.btech}</li>
+                    <li className="text-xs text-gray-600 flex items-center gap-2"><ChevronRight size={12} className="text-blue-500"/> Faculty Strength: {dept.admissions.facultyStrength}</li>
+                    <li className="text-xs text-gray-600 flex items-center gap-2"><ChevronRight size={12} className="text-blue-500"/> Placements (Current): TBA</li>
+                  </ul>
+                </div>
+                <div className="bg-white shadow-sm border border-gray-100 p-5 border-l-4 border-l-blue-600">
+                  <h4 className="font-bold text-gray-900 mb-3 text-sm">Programmes</h4>
+                  <ul className="space-y-2">
+                    <li className="text-xs text-gray-600 flex items-center gap-2"><ChevronRight size={12} className="text-blue-500"/> {dept.admissions.programs}</li>
+                  </ul>
+                </div>
               </div>
             </div>
+          </section>
 
-          </div>
+          {/* PEOs, PSOs and POs Section */}
+          <section id="peos">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Department PEOs, PSOs and POs</h2>
+            <div className="bg-white shadow-sm border border-gray-100 p-4">
+              <button className="text-[#1e3a8a] text-sm font-semibold hover:underline">View detailed PEOs, PSOs and POs</button>
+            </div>
+          </section>
+
+          {/* Programs Offered Section */}
+          <section id="programs">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Programs Offered</h2>
+            <div className="bg-white shadow-sm border border-gray-100 overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="p-4 text-sm font-bold text-gray-700">S.No</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">Level</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">Program Name</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">Duration</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">Intake</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dept.programs.map((prog, i) => (
+                    <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="p-4 text-sm text-gray-600">{i + 1}</td>
+                      <td className="p-4 text-sm text-gray-600">{prog.level}</td>
+                      <td className="p-4 text-sm text-gray-600">{prog.name}</td>
+                      <td className="p-4 text-sm text-gray-600">{prog.duration}</td>
+                      <td className="p-4 text-sm text-gray-600">{prog.intake}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Department History Section */}
+          <section id="history">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Department History</h2>
+            <div className="bg-white shadow-sm border border-gray-100 p-8">
+              <div className="relative border-l-2 border-blue-500 ml-3">
+                {dept.history.map((event, i) => (
+                  <div key={i} className="mb-8 ml-6 relative">
+                    {/* Timeline dot */}
+                    <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow-sm"></div>
+                    <h4 className="text-blue-600 font-bold text-sm mb-1">{event.year}</h4>
+                    <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded border border-gray-100">{event.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Department Highlights */}
+          <section id="highlights">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Department Highlights</h2>
+            <div className="bg-white shadow-sm border border-gray-100 p-6 border-l-4 border-l-yellow-400">
+              <h3 className="font-bold text-gray-900 mb-2 text-sm">Academic Excellence</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                {dept.highlights}
+              </p>
+            </div>
+          </section>
+
+          {/* Department Gallery */}
+          <section id="gallery">
+            <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200 text-center">Department Gallery</h2>
+            <div className="w-full bg-[#f8f9fa] py-8 border border-gray-100 shadow-sm flex items-center justify-center relative group overflow-hidden">
+              <div className="w-4/5 h-[300px] md:h-[400px] bg-gray-200 relative flex items-center justify-center border border-gray-300">
+                 <span className="text-gray-500 font-bold tracking-widest text-lg">[ GALLERY PLACEHOLDER ]</span>
+              </div>
+              <div className="absolute left-6 w-10 h-10 bg-black/20 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/40"><ChevronLeft /></div>
+              <div className="absolute right-6 w-10 h-10 bg-black/20 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/40"><ChevronRight /></div>
+            </div>
+          </section>
+
         </div>
       </div>
-    </>
+    </div>
   );
 };
-
-// Helper icon component since Globe wasn't imported at top
-const Globe = ({ size }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-);
 
 export default DepartmentDetail;
