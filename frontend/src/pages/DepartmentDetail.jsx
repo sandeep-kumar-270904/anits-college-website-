@@ -5,6 +5,87 @@ import { ChevronDown, ChevronRight, Plus, Minus, ChevronLeft } from 'lucide-reac
 
 // Shared Mock Data for Departments
 const departmentData = {
+  chemical: {
+    name: "Chemical Engineering",
+    shortName: "CHEM",
+    hodName: "Dr. M. Shiva Naresh",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of Chemical",
+    hodMessage: "Welcome to the Department of Chemical Engineering at ANITS. Established in 2012, our department focuses strongly on sustainable processes, biochemical engineering, and modern chemical technologies. We offer B.Tech programs in Chemical Engineering to shape future leaders.",
+    vision: "To achieve academic excellence in Chemical Engineering and seek global recognition in building sustainable and safe environment.",
+    mission: [
+      "To produce young and globally competitive chemical engineers.",
+      "Promote research in sustainable technologies.",
+      "Collaborate with chemical and pharma industries."
+    ],
+    admissions: { btech: 60, facultyStrength: 15, programs: "B.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - Chemical Engineering", duration: "4 Years", intake: 60 }],
+    history: [{ year: "2012", text: "Chemical Engineering Department Established." }],
+    highlights: [
+      { title: "Academic Excellence", text: "Our students consistently achieve top university ranks and secure placements in core industries like Coromandel and Dr. Reddy's." }
+    ]
+  },
+  'cse-ds': {
+    name: "Computer Science and Engineering (Data Science)",
+    shortName: "CSE (DS)",
+    hodName: "Dr. P. E. S. N. Krishna Prasad",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of CSE (DS)",
+    hodMessage: "Welcome to CSE (Data Science). In the era of big data, our department equips students with skills in data analytics, machine learning, and statistical modeling to solve complex real-world data challenges.",
+    vision: "To be a premier center of excellence in Data Science education and research.",
+    mission: [
+      "Provide strong foundation in Data Science.",
+      "Promote research in AI and Big Data.",
+      "Industry collaboration for real-time projects."
+    ],
+    admissions: { btech: 60, facultyStrength: 12, programs: "B.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - CSE (Data Science)", duration: "4 Years", intake: 60 }],
+    history: [{ year: "2020", text: "B.Tech in CSE (Data Science) Introduced." }],
+    highlights: [
+      { title: "Academic Excellence", text: "State-of-the-art Data Analytics labs and curriculum aligned with modern data engineering practices." },
+      { title: "Industry Tie-ups", text: "Collaborations with IT giants for data science internships." }
+    ]
+  },
+  'cse-aiml': {
+    name: "Computer Science and Engineering (AI & ML)",
+    shortName: "CSE (AI&ML)",
+    hodName: "Dr. V. Usha Bala",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of CSE (AI&ML)",
+    hodMessage: "Welcome to CSE (AI & ML). Artificial Intelligence is shaping the future. Our department is dedicated to producing engineers who can design intelligent systems, neural networks, and advanced automation solutions.",
+    vision: "To create globally competent AI & ML professionals.",
+    mission: [
+      "Impart quality education in AI & ML.",
+      "Foster innovations in deep learning and robotics.",
+      "Ethical AI development practices."
+    ],
+    admissions: { btech: 120, facultyStrength: 18, programs: "B.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - CSE (AI & ML)", duration: "4 Years", intake: 120 }],
+    history: [{ year: "2020", text: "B.Tech in CSE (AI & ML) Introduced." }],
+    highlights: [
+      { title: "Academic Excellence", text: "Comprehensive curriculum covering NLP, Computer Vision, and Deep Learning." },
+      { title: "Student Achievements", text: "Students actively participate and win in national level AI hackathons." },
+      { title: "Industry Institute", text: "MOU with leading AI startups for hands-on projects." }
+    ]
+  },
+  cse: {
+    name: "Computer Science and Engineering",
+    shortName: "CSE",
+    hodName: "Dr. R. Sivaranjani",
+    hodTitle: "M.Tech., Ph.D",
+    hodRole: "HOD, Dept of CSE",
+    hodMessage: "Welcome to the CSE Department. We aim to shape the future tech leaders by providing cutting-edge knowledge in software development, cloud computing, and cyber security.",
+    vision: "To be a center of excellence in computer science education and research.",
+    mission: ["Deliver high-quality education.", "Foster innovation.", "Build strong industry ties."],
+    admissions: { btech: 240, facultyStrength: 45, programs: "B.Tech, M.Tech" },
+    programs: [{ level: "UG", name: "B.Tech - CSE", duration: "4 Years", intake: 240 }],
+    history: [{ year: "2001", text: "CSE Department Established." }],
+    highlights: [
+      { title: "Academic Excellence", text: "NBA Accredited, high placement records, and top university ranks." },
+      { title: "Student Achievements", text: "Multiple hackathon winners and open-source contributors." },
+      { title: "Industry Tie-ups", text: "Strong alumni network and partnerships with top software firms." }
+    ]
+  },
   it: {
     name: "Information Technology",
     shortName: "IT",
@@ -34,21 +115,9 @@ const departmentData = {
       { year: "2012", text: "B.Tech intake increased to 180 students." },
       { year: "2017", text: "Introduced M.Tech in Data Science." }
     ],
-    highlights: "The IT Department has achieved incredible academic milestones, including high pass percentages and top university ranks. Our students consistently secure high-paying jobs in top MNCs like TCS, Infosys, Amazon, and Wipro. The department regularly conducts workshops, seminars, and FDPs."
-  },
-  cse: {
-    name: "Computer Science & Engineering",
-    shortName: "CSE",
-    hodName: "Dr. R. Sivaranjani",
-    hodTitle: "M.Tech., Ph.D",
-    hodRole: "HOD, Dept of CSE",
-    hodMessage: "Welcome to the CSE Department. We aim to shape the future tech leaders by providing cutting-edge knowledge in AI, Machine Learning, and Cloud Computing.",
-    vision: "To be a center of excellence in computer science education and research.",
-    mission: ["Deliver high-quality education.", "Foster innovation.", "Build strong industry ties."],
-    admissions: { btech: 240, facultyStrength: 45, programs: "B.Tech, M.Tech" },
-    programs: [{ level: "UG", name: "B.Tech - CSE", duration: "4 Years", intake: 240 }],
-    history: [{ year: "2001", text: "CSE Department Established." }],
-    highlights: "NBA Accredited, high placement records, and multiple hackathon winners."
+    highlights: [
+      { title: "Academic Excellence", text: "The IT Department has achieved incredible academic milestones, including high pass percentages and top university ranks. Our students consistently secure high-paying jobs in top MNCs like TCS, Infosys, Amazon, and Wipro. The department regularly conducts workshops, seminars, and FDPs." }
+    ]
   },
   ece: {
     name: "Electronics & Communication Engineering",
@@ -62,7 +131,9 @@ const departmentData = {
     admissions: { btech: 180, facultyStrength: 38, programs: "B.Tech, M.Tech" },
     programs: [{ level: "UG", name: "B.Tech - ECE", duration: "4 Years", intake: 180 }],
     history: [{ year: "2001", text: "ECE Department Established." }],
-    highlights: "Strong alumni network and AICTE funded projects."
+    highlights: [
+      { title: "Academic Excellence", text: "Strong alumni network and AICTE funded projects." }
+    ]
   },
   mech: {
     name: "Mechanical Engineering",
@@ -76,7 +147,10 @@ const departmentData = {
     admissions: { btech: 120, facultyStrength: 30, programs: "B.Tech" },
     programs: [{ level: "UG", name: "B.Tech - MECH", duration: "4 Years", intake: 120 }],
     history: [{ year: "2005", text: "MECH Department Established." }],
-    highlights: "Advanced CAD/CAM labs and active SAE Baja teams."
+    highlights: [
+      { title: "Infrastructure", text: "Advanced CAD/CAM labs and modern manufacturing facilities." },
+      { title: "Student Activities", text: "Active SAE Baja teams and robotics clubs." }
+    ]
   },
   eee: {
     name: "Electrical & Electronics Engineering",
@@ -90,7 +164,9 @@ const departmentData = {
     admissions: { btech: 120, facultyStrength: 28, programs: "B.Tech" },
     programs: [{ level: "UG", name: "B.Tech - EEE", duration: "4 Years", intake: 120 }],
     history: [{ year: "2001", text: "EEE Department Established." }],
-    highlights: "Excellent energy audit initiatives."
+    highlights: [
+      { title: "Academic Excellence", text: "Excellent energy audit initiatives and smart grid research." }
+    ]
   },
   civil: {
     name: "Civil Engineering",
@@ -104,7 +180,9 @@ const departmentData = {
     admissions: { btech: 60, facultyStrength: 25, programs: "B.Tech" },
     programs: [{ level: "UG", name: "B.Tech - CIVIL", duration: "4 Years", intake: 60 }],
     history: [{ year: "2010", text: "Civil Department Established." }],
-    highlights: "Award-winning structural design projects."
+    highlights: [
+      { title: "Academic Excellence", text: "Award-winning structural design projects and consultancies." }
+    ]
   }
 };
 
@@ -389,13 +467,17 @@ const DepartmentDetail = () => {
           </section>
 
           {/* Department Highlights */}
-          <section id="highlights">
+          <section id="highlights" className="scroll-mt-[150px]">
             <h2 className="text-[#1e3a8a] text-2xl font-bold mb-6 pb-2 border-b border-gray-200">Department Highlights</h2>
-            <div className="bg-white shadow-sm border border-gray-100 p-6 border-l-4 border-l-yellow-400">
-              <h3 className="font-bold text-gray-900 mb-2 text-sm">Academic Excellence</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                {dept.highlights}
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dept.highlights.map((highlight, i) => (
+                <div key={i} className="bg-white shadow-sm border border-gray-100 p-6 border-l-4 border-l-blue-500">
+                  <h3 className="font-bold text-gray-900 mb-2 text-sm">{highlight.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {highlight.text}
+                  </p>
+                </div>
+              ))}
             </div>
           </section>
 
