@@ -1,16 +1,21 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Code, Cpu, Wrench, Zap, Database, Globe } from 'lucide-react';
+import { ArrowRight, Code, Cpu, Wrench, Zap, Database, Globe, Beaker, Brain, BarChart, HeartPulse, BookOpen } from 'lucide-react';
 
 const Departments = () => {
   const depts = [
-    { id: 'cse', name: "Computer Science & Engineering", desc: "Focus on AI, Web Development, Cybersecurity, and LLM technologies.", icon: <Code size={40} /> },
-    { id: 'ece', name: "Electronics & Communication", desc: "Specializing in VLSI, IoT, Embedded Systems, and Signal Processing.", icon: <Cpu size={40} /> },
-    { id: 'mech', name: "Mechanical Engineering", desc: "Robotics, Thermal Engineering, and modern manufacturing processes.", icon: <Wrench size={40} /> },
+    { id: 'chemical', name: "Chemical Engineering", desc: "Sustainable processes, biochemical engineering, and modern chemical technologies.", icon: <Beaker size={40} /> },
+    { id: 'civil', name: "Civil Engineering", desc: "Structural design, smart cities, and sustainable construction.", icon: <Globe size={40} /> },
+    { id: 'cse', name: "Computer Science & Eng.", desc: "Focus on Software Development, Cloud Computing, and Cybersecurity.", icon: <Code size={40} /> },
+    { id: 'cse-aiml', name: "CSE (AI & ML)", desc: "Designing intelligent systems, neural networks, and advanced automation.", icon: <Brain size={40} /> },
+    { id: 'cse-ds', name: "CSE (Data Science)", desc: "Data analytics, machine learning, and statistical modeling to solve real-world challenges.", icon: <BarChart size={40} /> },
     { id: 'eee', name: "Electrical & Electronics", desc: "Power systems, renewable energy, and smart grid technologies.", icon: <Zap size={40} /> },
-    { id: 'it', name: "Information Technology", desc: "Cloud computing, data analytics, and enterprise software solutions.", icon: <Database size={40} /> },
-    { id: 'civil', name: "Civil Engineering", desc: "Structural design, smart cities, and sustainable construction.", icon: <Globe size={40} /> }
+    { id: 'ece', name: "Electronics & Communication", desc: "Specializing in VLSI, IoT, Embedded Systems, and Signal Processing.", icon: <Cpu size={40} /> },
+    { id: 'it', name: "Information Technology", desc: "Skill-oriented education to meet the global demands of the IT Industry.", icon: <Database size={40} /> },
+    { id: 'mech', name: "Mechanical Engineering", desc: "Robotics, Thermal Engineering, and modern manufacturing processes.", icon: <Wrench size={40} /> },
+    { id: 'mba', name: "MBA (Hospital Admin)", desc: "Management education dedicated to nurturing future healthcare leaders.", icon: <HeartPulse size={40} /> },
+    { id: 'bsh-hod', name: "Basic Sciences & Humanities", desc: "The fundamental foundation for all engineering disciplines.", icon: <BookOpen size={40} /> }
   ];
 
   return (
