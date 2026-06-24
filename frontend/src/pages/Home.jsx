@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Users, Trophy } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import AdmissionPopup from '../components/AdmissionPopup';
 
 const Home = () => {
   const images = [
     '/images/anits2.png',
     '/images/anits3.png',
-    '/images/anits7.png',
-    '/images/anits1.png',
-    '/images/anits4.png',
-    '/images/anits5.png',
-    '/images/anits6.png'
+    '/images/anits7.png'
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -25,199 +18,238 @@ const Home = () => {
   }, [images.length]);
 
   return (
-    <div className="font-sans text-gray-800 bg-gray-50 pt-[52px]">
+    <div className="font-sans text-gray-800 bg-white pt-[52px]">
       <Helmet>
         <title>ANITS | Anil Neerukonda Institute of Technology & Sciences</title>
-        <meta name="description" content="Welcome to ANITS - Excellence in Engineering Education." />
       </Helmet>
 
-      <AdmissionPopup />
-
-      {/* Hero Carousel */}
-      <section className="relative h-[600px] w-full overflow-hidden bg-gray-900 group">
-        {images.map((img, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-          >
-            <img 
-              src={img} 
-              alt={`ANITS Campus ${index + 1}`} 
-              className="object-cover w-full h-full opacity-60 mix-blend-overlay"
-              onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80';
-              }}
-            />
-          </div>
-        ))}
-
-        {/* Carousel Content */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-lg mb-6 animate-fade-in">
-            Shaping the <span className="text-yellow-400">Future of Technology</span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl drop-shadow-md">
-            Join the legacy of excellence. ANITS is committed to producing world-class engineers through innovation, research, and holistic education.
-          </p>
-          <div className="flex gap-4">
-            <Link to="/admissions" className="px-8 py-4 bg-yellow-400 text-gray-900 font-bold rounded-lg hover:bg-yellow-300 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
-              Apply Now 2025-26
-            </Link>
-            <Link to="/about" className="px-8 py-4 bg-white/10 backdrop-blur-md text-white font-semibold rounded-lg border border-white/20 hover:bg-white/20 transition-all">
-              Discover ANITS
-            </Link>
-          </div>
+      {/* Carousel */}
+      <section className="relative w-full">
+        <div className="relative h-[250px] md:h-[400px] lg:h-[500px] w-full overflow-hidden bg-gray-100">
+          {images.map((img, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              }`}
+            >
+              <img 
+                src={img} 
+                alt={`ANITS Campus ${index + 1}`} 
+                className="object-cover w-full h-full"
+                onError={(e) => {
+                  e.target.src = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80';
+                }}
+              />
+            </div>
+          ))}
         </div>
-
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-3">
+        
+        {/* Carousel Dots Below Image */}
+        <div className="flex justify-center mt-6 gap-2 mb-12">
           {images.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all ${currentSlide === index ? 'bg-yellow-400 w-8' : 'bg-white/50 hover:bg-white'}`}
+              className={`w-2.5 h-2.5 rounded-sm transition-all ${currentSlide === index ? 'bg-[#1e5391] w-4' : 'bg-gray-300 hover:bg-gray-400'}`}
             />
           ))}
         </div>
       </section>
 
-      {/* Accreditations Section */}
-      <section className="py-16 bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center text-center">
-            <div className="p-6 rounded-2xl hover:bg-gray-50 transition-colors">
-              <div className="text-5xl font-black text-blue-600 mb-2">A+</div>
-              <div className="font-bold text-gray-900 text-lg">NAAC Accredited</div>
-              <div className="text-gray-500 font-medium">CGPA 3.48</div>
+      {/* Welcome & Video Section */}
+      <section className="max-w-6xl mx-auto px-4 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          <div className="relative pt-[56.25%] rounded shadow-md overflow-hidden bg-gray-100 border border-gray-200">
+            <iframe 
+              className="absolute inset-0 w-full h-full" 
+              src="https://www.youtube.com/embed/placeholder" 
+              title="ANITS Campus Tour" 
+              frameBorder="0" 
+              allowFullScreen>
+            </iframe>
+          </div>
+          <div>
+            <h2 className="text-[28px] font-bold text-[#111] mb-6 font-['Oswald',sans-serif]">Welcome to ANITS</h2>
+            <p className="text-gray-600 leading-relaxed text-[14px] text-justify">
+              Anil Neerukonda Institute of Technology & Sciences (ANITS), Visakhapatnam is owned by Megha Engineering and Infrastructure Limited (MEIL) which is one of the top infrastructure and manufacturing company in India with headquarters at Hyderabad. The institute was established in the academic year 2001-02 by Anil Neerukonda Educational Society (ANES) which was founded by Dr. N.B.R. Prasad, an NRI Philanthropist from the USA, with industrialists and eminent educationists in memory of his late son, Anil Neerukonda.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ANITS at a Glance */}
+      <section className="bg-[#fcfcfc] py-16">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          <h2 className="text-[28px] font-bold text-[#111] mb-10 font-['Oswald',sans-serif]">ANITS at a Glance</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#fbc02d] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">5k+</div><div className="text-xs uppercase tracking-wide">Students Enrolled</div>
             </div>
-            <div className="p-6 rounded-2xl hover:bg-gray-50 transition-colors">
-              <Trophy size={48} className="mx-auto text-blue-600 mb-4" />
-              <div className="font-bold text-gray-900 text-lg">ISO 9001:2015</div>
-              <div className="text-gray-500 font-medium">Certified Institution</div>
+            <div className="bg-[#7cb342] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">20k+</div><div className="text-xs uppercase tracking-wide">Alumni</div>
             </div>
-            <div className="p-6 rounded-2xl hover:bg-gray-50 transition-colors">
-              <div className="flex justify-center text-yellow-400 text-3xl mb-2 gap-1">
-                ★★★★★
-              </div>
-              <div className="font-bold text-gray-900 text-lg">IIC 5-Star Rating</div>
-              <div className="text-gray-500 font-medium">MoE's Innovation Cell</div>
+            <div className="bg-[#ff6e6e] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">300</div><div className="text-xs uppercase tracking-wide">Faculty count</div>
+            </div>
+            <div className="bg-[#fbc02d] text-white py-8 px-2 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">90% +</div><div className="text-[10px] uppercase tracking-wide leading-tight mt-1">Faculty with Ph.D/M.Tech</div>
+            </div>
+            <div className="bg-[#7cb342] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">50+</div><div className="text-xs uppercase tracking-wide">MoUs</div>
+            </div>
+            <div className="bg-[#ff6e6e] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">37</div><div className="text-xs uppercase tracking-wide">Labs</div>
+            </div>
+            <div className="bg-[#fbc02d] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">80+</div><div className="text-xs uppercase tracking-wide">Research projects</div>
+            </div>
+            <div className="bg-[#7cb342] text-white py-8 rounded-md shadow-sm font-bold flex flex-col justify-center items-center">
+              <div className="text-[28px] mb-1">800+</div><div className="text-xs uppercase tracking-wide">Placements</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Placement Highlights */}
-      <section className="py-24 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-yellow-400 mb-4">Record Placements 2025-26</h2>
-            <p className="text-xl text-slate-400 font-medium">Empowering Innovators, Building Futures</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-            {/* Highest Package Card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl p-10 text-gray-900 shadow-2xl hover:scale-[1.02] transition-transform">
-              <Trophy size={180} className="absolute -top-6 -right-6 opacity-20 text-white" />
-              <h3 className="text-xl font-bold mb-2 opacity-90">Highest Salary Package</h3>
-              <div className="text-7xl font-black tracking-tighter mb-8">17 <span className="text-3xl font-bold">LPA</span></div>
-              <div>
-                <div className="font-bold text-2xl mb-1">P.V. Sai Deepak (CSE)</div>
-                <div className="text-lg font-medium opacity-90">Cloud & AI Engineer at <span className="font-bold">Text Anything</span></div>
-              </div>
-            </div>
-
-            {/* Total Offers Card */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-10 flex flex-col justify-center items-center text-center backdrop-blur-sm hover:bg-white/10 transition-colors">
-              <h3 className="text-2xl text-blue-400 font-bold mb-4">Total Campus Offers</h3>
-              <div className="text-8xl font-black tracking-tighter text-white mb-4">1095+</div>
-              <div className="text-xl text-slate-300 font-medium">Students placed in top global MNCs</div>
-            </div>
-          </div>
-
-          {/* Branch Wise Stats */}
-          <h3 className="text-center text-2xl font-bold mb-10 text-slate-200">Branch-wise Placement Highlights</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {[
-              { name: 'MECH', count: 189, highest: '7.50 LPA' },
-              { name: 'CSE', count: 141, highest: '12.00 LPA' },
-              { name: 'EEE', count: 117, highest: '4.50 LPA' },
-              { name: 'IT', count: 112, highest: '10.30 LPA' },
-              { name: 'ECE', count: 77, highest: '9.50 LPA' },
-              { name: 'CIVIL', count: 58, highest: '8.00 LPA' },
-              { name: 'CSE-DS', count: 42, highest: '11.30 LPA' },
-              { name: 'CHEM', count: 28, highest: '7.50 LPA' },
-              { name: 'CSE-AI&ML', count: 25, highest: '9.50 LPA' }
-            ].map((branch, i) => (
-              <div key={i} className="bg-slate-800/50 p-5 rounded-xl border-l-4 border-yellow-400 hover:bg-slate-700 transition-colors">
-                <div className="font-bold text-yellow-400 mb-2">{branch.name}</div>
-                <div className="text-3xl font-black text-white mb-1">{branch.count} <span className="text-sm font-medium text-slate-400">Offers</span></div>
-                <div className="text-xs text-slate-400 font-medium uppercase tracking-wide">Highest: {branch.highest}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Top Recruiters */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Major Recruiters - 2025/26 Batch</h2>
-            <div className="w-24 h-1 bg-blue-600 mx-auto rounded-full"></div>
-          </div>
-          
+      {/* Accreditations */}
+      <section className="py-16 bg-[#26629e]">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h2 className="text-[28px] font-bold text-white mb-6 font-['Oswald',sans-serif]">Accreditations</h2>
+          <p className="text-white text-[14px] mb-12 max-w-4xl mx-auto leading-relaxed opacity-90">
+            Anil Neerukonda Institute of Technology & Sciences (ANITS), Visakhapatnam is approved by All India Council for Technical Education (AICTE), New Delhi and is affiliated to Andhra University (AU), Visakhapatnam.
+          </p>
           <div className="flex flex-wrap justify-center gap-6">
-            {[
-              { company: 'MEIL', offers: 254, pkg: '4.50 LPA' },
-              { company: 'Infosys', offers: 245, pkg: '3.6 - 9.5 LPA' },
-              { company: 'Cognizant', offers: 75, pkg: '4.5 - 6.75 LPA' },
-              { company: 'Deloitte', offers: 24, pkg: '4.50 LPA' },
-              { company: 'Hetero', offers: 17, pkg: '3.20 LPA' },
-              { company: 'VEM', offers: 9, pkg: '4.00 LPA' },
-              { company: 'Deccan', offers: 8, pkg: '4.00 LPA' },
-              { company: 'Reliance', offers: 5, pkg: '7.50 LPA' },
-              { company: 'FactSet', offers: 4, pkg: '10.30 LPA' }
-            ].map((rec, i) => (
-              <div key={i} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-gray-100 w-full sm:w-[260px] text-center group">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 group-hover:text-blue-600 transition-colors">{rec.company}</h3>
-                <div className="text-4xl font-black text-blue-600 mb-2">{rec.offers}</div>
-                <div className="text-sm text-gray-500 font-medium">Offers at {rec.pkg}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-16">
-            <Link to="/placements" className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors shadow-lg hover:shadow-xl">
-              View Full Placement Report <ArrowRight size={20} />
-            </Link>
+            <div className="bg-white px-8 py-10 rounded-md w-full sm:w-64 text-center shadow-lg flex flex-col items-center justify-center">
+              <div className="w-16 h-16 border-2 border-[#1ca1a4] text-[#1ca1a4] rounded-full flex items-center justify-center font-bold text-2xl mb-4">NBA</div>
+              <div className="font-bold text-[#222] text-[15px] leading-tight">NBA<br/>Accreditation</div>
+            </div>
+            <div className="bg-white px-8 py-10 rounded-md w-full sm:w-64 text-center shadow-lg flex flex-col items-center justify-center">
+              <div className="w-16 h-16 border-2 border-red-500 text-red-500 rounded-full flex items-center justify-center font-bold text-xl mb-4">NAAC</div>
+              <div className="font-bold text-[#222] text-[15px] leading-tight">NAAC "A+"<br/>Accreditation</div>
+            </div>
+            <div className="bg-white px-8 py-10 rounded-md w-full sm:w-64 text-center shadow-lg flex flex-col items-center justify-center">
+              <div className="w-16 h-16 border-2 border-pink-500 text-pink-500 rounded-full flex items-center justify-center font-bold text-xl mb-4">UGC</div>
+              <div className="font-bold text-[#222] text-[15px] leading-tight">UGC<br/>Autonomous</div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose ANITS?</h2>
-            <p className="text-xl text-gray-500">Empowering students to achieve their highest potential.</p>
+      {/* Events and Notice Board */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden h-[350px]">
+              <div className="bg-[#1e5391] text-white px-4 py-3 font-bold font-['Oswald',sans-serif] uppercase tracking-wider text-[17px]">Events</div>
+              <div className="p-4 space-y-4 h-full overflow-y-auto">
+                <div className="flex gap-4 border-b border-gray-100 pb-4">
+                  <div className="bg-[#1e5391] text-white w-14 h-14 flex flex-col justify-center items-center rounded-sm font-bold flex-shrink-0">
+                    <span className="text-xs">Feb</span><span className="text-[22px] leading-none">20</span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-[#222] text-sm">Tiriyananmidy?</div>
+                    <div className="text-[13px] text-gray-500 mt-1">Special guest lecture series...</div>
+                    <div className="text-[11px] text-[#3b82f6] mt-2 font-bold cursor-pointer">READ MORE &gt;</div>
+                  </div>
+                </div>
+                <div className="flex gap-4 border-b border-gray-100 pb-4">
+                  <div className="bg-[#1e5391] text-white w-14 h-14 flex flex-col justify-center items-center rounded-sm font-bold flex-shrink-0">
+                    <span className="text-xs">Jan</span><span className="text-[22px] leading-none">28</span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-[#222] text-sm">REPUBLIC DAY CELEBRATIONS</div>
+                    <div className="text-[13px] text-gray-500 mt-1">Flag hoisting at 8:30 AM...</div>
+                    <div className="text-[11px] text-[#3b82f6] mt-2 font-bold cursor-pointer">READ MORE &gt;</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden h-[350px]">
+              <div className="bg-[#1e5391] text-white px-4 py-3 font-bold font-['Oswald',sans-serif] uppercase tracking-wider text-[17px]">Notice Board</div>
+              <div className="p-5 space-y-4 h-full overflow-y-auto">
+                <ul className="list-disc pl-4 text-[13px] space-y-5 font-bold leading-relaxed">
+                  <li className="text-blue-800"><span className="text-[#1e5391]">IV/IV B.Tech SEM-II MID-II INTERNAL LAB TIME TABLE (MARCH 2024)...</span></li>
+                  <li className="text-blue-800"><span className="text-[#1e5391]">M.Tech & B.Tech 2024 Reg/Sup Exams APRIL 2024 (R20)...</span></li>
+                  <li className="text-red-600"><span className="text-red-600">IV/IV B.TECH II-SEMESTER REGULAR & SUPPLEMENTARY EXAMINATIONS TIME TABLE (R20, R19 & R15) APRIL-2024 RESULTS</span></li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="bg-gray-50 p-10 rounded-3xl hover:-translate-y-2 transition-transform">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6"><BookOpen size={30} /></div>
-              <h3 className="text-xl font-bold mb-4">Modern Curriculum</h3>
-              <p className="text-gray-600">Industry-aligned courses focusing on AI, Cloud, and deep tech.</p>
+        </div>
+      </section>
+
+      {/* Top 6 Recruiters */}
+      <section className="py-16 bg-[#fcfcfc] text-center border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-[28px] font-bold text-[#111] mb-3 font-['Oswald',sans-serif]">Our Top 6 Recruiters</h2>
+          <p className="text-gray-500 text-[13px] mb-12 max-w-3xl mx-auto leading-relaxed">We have grabbed the huge placements with stunning numbers who got placed in top MNCs with potential of our students. Our students achieved campus placements from Service-based to Product-based MNCs.</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="bg-[#1e5391] text-white flex flex-col justify-center items-center p-4 rounded-md shadow-sm h-32">
+              <div className="font-bold text-[10px] uppercase tracking-wide mb-2 opacity-90">Highest Package</div>
+              <div className="text-2xl font-black mb-1">38 LPA</div>
+              <div className="text-[10px] uppercase opacity-80">Amazon (SDE 2024)</div>
             </div>
-            <div className="bg-gray-50 p-10 rounded-3xl hover:-translate-y-2 transition-transform">
-              <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-2xl flex items-center justify-center mb-6"><Users size={30} /></div>
-              <h3 className="text-xl font-bold mb-4">Expert Faculty</h3>
-              <p className="text-gray-600">Learn from highly qualified professors with real-world experience.</p>
-            </div>
-            <div className="bg-gray-50 p-10 rounded-3xl hover:-translate-y-2 transition-transform">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-6"><Trophy size={30} /></div>
-              <h3 className="text-xl font-bold mb-4">Innovation Hubs</h3>
-              <p className="text-gray-600">Participate in hackathons, incubators, and cutting-edge research.</p>
-            </div>
+            {['MEIL', 'Verizon', 'CarWale', 'Amazon', 'TCS'].map((company, i) => (
+              <div key={i} className="border border-gray-200 rounded-md flex justify-center items-center p-6 bg-white shadow-sm h-32">
+                <span className="font-bold text-gray-400 text-lg uppercase">{company}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Partner Companies */}
+      <section className="py-16 bg-white text-center border-t border-gray-100">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-[28px] font-bold text-[#111] mb-10 font-['Oswald',sans-serif]">Our Partner Companies</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              {num: '150', text: 'Recruiting Partners'},
+              {num: '92', text: 'Placement Drives'},
+              {num: '25', text: 'Fortune 500 Companies'},
+              {num: '15', text: 'International Recruiters'}
+            ].map((item, i) => (
+              <div key={i} className="bg-white border border-gray-100 shadow-sm rounded-md py-10 px-4 flex flex-col justify-center items-center">
+                <div className="text-4xl font-bold text-[#1e5391] mb-3">{item.num}</div>
+                <div className="text-[11px] font-bold text-gray-600 uppercase tracking-wide text-center">{item.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Partners Across Industries */}
+      <section className="py-16 bg-[#fcfcfc] text-center border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-[28px] font-bold text-[#111] mb-10 font-['Oswald',sans-serif]">Partners Across Industries</h2>
+          <div className="flex flex-wrap justify-center items-center gap-4">
+            {['Amazon', 'Infosys', 'TCS', 'Flipkart', 'Wipro', 'Cognizant', 'Accenture', 'MEIL'].map((name, i) => (
+              <div key={i} className="border border-gray-200 rounded-md w-[130px] h-[60px] flex justify-center items-center text-[13px] font-bold text-gray-400 bg-white shadow-sm">
+                {name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* What Our Students Say */}
+      <section className="py-16 bg-white text-center border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-[28px] font-bold text-[#111] mb-16 font-['Oswald',sans-serif]">What Our Students Say</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1,2,3].map(i => (
+              <div key={i} className="relative bg-white border-t-[6px] border-[#26a69a] rounded-md shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-8 pt-14 mt-8">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[76px] h-[76px] bg-gray-100 rounded-full border-4 border-white overflow-hidden shadow-sm flex justify-center items-center">
+                  <div className="text-gray-300">👤</div>
+                </div>
+                <div className="flex justify-center text-[#ffc107] text-[15px] mb-5 gap-1">★★★★★</div>
+                <p className="text-gray-600 text-[13.5px] italic mb-8 leading-relaxed">
+                  "Anil Neerukonda Institute of Technology & Sciences is a wonderful institution. The faculty is very supportive and encouraging. I am proud to be a student here. The placement training provided here is top notch."
+                </p>
+                <div className="font-bold text-[#222] text-[15px]">Student Name</div>
+                <div className="text-[12px] text-gray-500 mt-1">Computer Science, Batch of 2024</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
