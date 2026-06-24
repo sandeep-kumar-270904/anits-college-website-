@@ -82,6 +82,32 @@ def save_syllabus(data):
     with open(syllabus_file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
+# Academic Calendar Data Handling
+calendar_file_path = "../data/academic_calendar.json"
+def load_academic_calendar():
+    if os.path.exists(calendar_file_path):
+        with open(calendar_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_academic_calendar(data):
+    os.makedirs(os.path.dirname(calendar_file_path), exist_ok=True)
+    with open(calendar_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Time Tables Data Handling
+time_tables_file_path = "../data/time_tables.json"
+def load_time_tables():
+    if os.path.exists(time_tables_file_path):
+        with open(time_tables_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_time_tables(data):
+    os.makedirs(os.path.dirname(time_tables_file_path), exist_ok=True)
+    with open(time_tables_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
 # PDF Loader
 @lru_cache(maxsize=1)
 def extract_text_from_pdfs():
@@ -248,6 +274,122 @@ def upload_policy():
 @app.route("/api/policy_file/<filename>")
 def serve_policy_file(filename):
     pdf_dir = "../data/policies"
+    return send_from_directory(pdf_dir, filename)
+
+@app.route("/api/upload_academic_calendar", methods=["POST"])
+@token_required
+def upload_academic_calendar():
+    academic_year_header = request.form.get("academic_year_header")
+    year = request.form.get("year")
+    program = request.form.get("program")
+    
+    if not academic_year_header or not year or not program:
+        return jsonify({"error": "Academic year header, year, and program are required"}), 400
+        
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+        
+    if file and file.filename.endswith(".pdf"):
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"calendar_{unique_id}_{secure_filename(file.filename)}"
+        
+        pdf_dir = "../data/academic_calendar_files"
+        os.makedirs(pdf_dir, exist_ok=True)
+        file.save(os.path.join(pdf_dir, filename))
+        
+        calendar_data = load_academic_calendar()
+        
+        # We need to structure the JSON grouping by yearHeader
+        # e.g., [{"yearHeader": "Academic Year 2025-26", "items": [{"year": "2025-26", "program": "UG", "filename": "..."}]}]
+        
+        # Find if section exists
+        section = next((s for s in calendar_data if s["yearHeader"] == academic_year_header), None)
+        new_item = {
+            "id": unique_id,
+            "year": year,
+            "program": program,
+            "filename": filename,
+            "upload_date": datetime.utcnow().isoformat()
+        }
+        
+        if section:
+            section["items"].append(new_item)
+        else:
+            calendar_data.append({
+                "yearHeader": academic_year_header,
+                "items": [new_item]
+            })
+            
+        save_academic_calendar(calendar_data)
+        
+        return jsonify({"message": f"Successfully uploaded calendar for {program}"})
+        
+    return jsonify({"error": "Only PDF files are allowed"}), 400
+
+@app.route("/api/academic_calendar", methods=["GET"])
+def get_academic_calendar():
+    data = load_academic_calendar()
+    return jsonify(data)
+
+@app.route("/api/academic_calendar_file/<filename>")
+def serve_academic_calendar_file(filename):
+    pdf_dir = "../data/academic_calendar_files"
+    return send_from_directory(pdf_dir, filename)
+
+@app.route("/api/upload_time_table", methods=["POST"])
+@token_required
+def upload_time_table():
+    department = request.form.get("department")
+    
+    if not department:
+        return jsonify({"error": "Department name is required"}), 400
+        
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+        
+    if file and file.filename.endswith(".pdf"):
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"timetable_{unique_id}_{secure_filename(file.filename)}"
+        
+        pdf_dir = "../data/time_table_files"
+        os.makedirs(pdf_dir, exist_ok=True)
+        file.save(os.path.join(pdf_dir, filename))
+        
+        time_tables_data = load_time_tables()
+        
+        # If department already exists, update filename, else add new
+        existing_idx = next((i for i, t in enumerate(time_tables_data) if t["department"] == department), None)
+        if existing_idx is not None:
+            time_tables_data[existing_idx]["filename"] = filename
+            time_tables_data[existing_idx]["upload_date"] = datetime.utcnow().isoformat()
+        else:
+            time_tables_data.append({
+                "id": unique_id,
+                "department": department,
+                "filename": filename,
+                "upload_date": datetime.utcnow().isoformat()
+            })
+            
+        save_time_tables(time_tables_data)
+        
+        return jsonify({"message": f"Successfully uploaded Time Table for {department}"})
+        
+    return jsonify({"error": "Only PDF files are allowed"}), 400
+
+@app.route("/api/time_tables", methods=["GET"])
+def get_time_tables():
+    data = load_time_tables()
+    return jsonify(data)
+
+@app.route("/api/time_table_file/<filename>")
+def serve_time_table_file(filename):
+    pdf_dir = "../data/time_table_files"
     return send_from_directory(pdf_dir, filename)
 
 MAX_MESSAGE_LENGTH = 5000

@@ -1,0 +1,9 @@
+[
+    { "id": "t1", "department": "Chemical Engineering", "filename": "dummy.pdf" },
+    { "id": "t2", "department": "Civil Engineering", "filename": "dummy.pdf" },
+    { "id": "t3", "department": "Computer Science Engineering", "filename": "dummy.pdf" },
+    { "id": "t4", "department": "Electrical and Electronics Engineering", "filename": "dummy.pdf" },
+    { "id": "t5", "department": "Electronics and Communications Engineering", "filename": "dummy.pdf" },
+    { "id": "t6", "department": "Information Technology", "filename": "dummy.pdf" },
+    { "id": "t7", "department": "Mechanical Engineering", "filename": "dummy.pdf" }
+]

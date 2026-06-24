@@ -1,0 +1,61 @@
+[
+    {
+        "yearHeader": "Academic Year 2025-26",
+        "items": [
+            { "id": "seed1", "year": "2025-26", "program": "First Year UG Courses", "filename": "dummy.pdf" },
+            { "id": "seed2", "year": "2025-26", "program": "UG Courses", "filename": "dummy.pdf" },
+            { "id": "seed3", "year": "2025-26", "program": "PG(M.Tech) Courses", "filename": "dummy.pdf" },
+            { "id": "seed4", "year": "2025-26", "program": "PG(MBA) Courses", "filename": "dummy.pdf" }
+        ]
+    },
+    {
+        "yearHeader": "Academic Year 2024-25",
+        "items": [
+            { "id": "seed5", "year": "2024-25", "program": "First Year UG Courses", "filename": "dummy.pdf" },
+            { "id": "seed6", "year": "2024-25", "program": "UG Courses", "filename": "dummy.pdf" },
+            { "id": "seed7", "year": "2024-25", "program": "Working Professionals", "filename": "dummy.pdf" },
+            { "id": "seed8", "year": "2024-25", "program": "MBA", "filename": "dummy.pdf" }
+        ]
+    },
+    {
+        "yearHeader": "Academic Year 2023-24",
+        "items": [
+            { "id": "seed9", "year": "2023-24", "program": "MBA", "filename": "dummy.pdf" },
+            { "id": "seed10", "year": "2023-24", "program": "M.Tech Programme", "filename": "dummy.pdf" },
+            { "id": "seed11", "year": "2023-24", "program": "1st year B.Tech", "filename": "dummy.pdf" },
+            { "id": "seed12", "year": "2023-24", "program": "UG Courses", "filename": "dummy.pdf" }
+        ]
+    },
+    {
+        "yearHeader": "Academic Year 2022-23",
+        "items": [
+            { "id": "seed13", "year": "2022-23", "program": "Revised PG", "filename": "dummy.pdf" },
+            { "id": "seed14", "year": "2022-23", "program": "1st year B.Tech", "filename": "dummy.pdf" },
+            { "id": "seed15", "year": "2022-23", "program": "UG Courses", "filename": "dummy.pdf" },
+            { "id": "seed16", "year": "2022-23", "program": "PG Courses", "filename": "dummy.pdf" }
+        ]
+    },
+    {
+        "yearHeader": "Academic Year 2021-22",
+        "items": [
+            { "id": "seed17", "year": "2021-22", "program": "PG Courses", "filename": "dummy.pdf" },
+            { "id": "seed18", "year": "2021-22", "program": "1st year B.Tech", "filename": "dummy.pdf" },
+            { "id": "seed19", "year": "2021-22", "program": "UG Courses", "filename": "dummy.pdf" }
+        ]
+    },
+    {
+        "yearHeader": "Academic Year 2020-21",
+        "items": [
+            { "id": "seed20", "year": "2020-21", "program": "(IV B.Tech (Even Semester)", "filename": "dummy.pdf" },
+            { "id": "seed21", "year": "2020-21", "program": "UG Courses", "filename": "dummy.pdf" },
+            { "id": "seed22", "year": "2020-21", "program": "First Year", "filename": "dummy.pdf" },
+            { "id": "seed23", "year": "2020-21", "program": "PG Courses", "filename": "dummy.pdf" }
+        ]
+    },
+    {
+        "yearHeader": "Academic Year 2019-20",
+        "items": [
+            { "id": "seed24", "year": "2019-20", "program": "UG Courses", "filename": "dummy.pdf" }
+        ]
+    }
+]

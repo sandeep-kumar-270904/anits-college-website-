@@ -19,12 +19,30 @@ const AdminDashboard = () => {
   const [policyFile, setPolicyFile] = useState(null);
   const [policyUploadStatus, setPolicyUploadStatus] = useState('');
 
+  // Academic Calendar state
+  const [calendarYearHeader, setCalendarYearHeader] = useState('Academic Year 2025-26');
+  const [calendarYear, setCalendarYear] = useState('2025-26');
+  const [calendarProgram, setCalendarProgram] = useState('');
+  const [calendarFile, setCalendarFile] = useState(null);
+  const [calendarUploadStatus, setCalendarUploadStatus] = useState('');
+
+  // Time Table state
+  const [timeTableDept, setTimeTableDept] = useState('Chemical Engineering');
+  const [timeTableFile, setTimeTableFile] = useState(null);
+  const [timeTableUploadStatus, setTimeTableUploadStatus] = useState('');
+
   const policiesList = [
     "Research and Development Policy", "Innovation and Entrepreneurship Policy", "Institutional Ethics Policy",
     "IPR Policy", "IT Policy", "Maintenance Policy", "Placement Policy", "Non-Teaching Staff Welfare Policy",
     "E- Governance Policy", "Recruitment Policy", "Promotion Policy", "Maternity Leave Policy",
     "E- Waste Management Policy", "Waste management Policy", "Energy Policy", "Environmental Policy",
     "Green Campus Policy", "Code of Conduct", "Divyangjan Policy", "Anti-Ragging Policy", "RTI Policy"
+  ];
+
+  const deptsList = [
+    "Chemical Engineering", "Civil Engineering", "Computer Science Engineering",
+    "Electrical and Electronics Engineering", "Electronics and Communications Engineering",
+    "Information Technology", "Mechanical Engineering"
   ];
 
   const navigate = useNavigate();
@@ -169,6 +187,79 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       setPolicyUploadStatus('Upload error');
+    }
+  };
+
+  const handleCalendarUpload = async (e) => {
+    e.preventDefault();
+    if (!calendarFile) {
+      setCalendarUploadStatus('Please select a PDF file first.');
+      return;
+    }
+    if (!calendarProgram) {
+      setCalendarUploadStatus('Please enter a program name.');
+      return;
+    }
+    
+    setCalendarUploadStatus('Uploading...');
+    const formData = new FormData();
+    formData.append('academic_year_header', calendarYearHeader);
+    formData.append('year', calendarYear);
+    formData.append('program', calendarProgram);
+    formData.append('file', calendarFile);
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/upload_academic_calendar`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setCalendarUploadStatus(`Upload successful! Added to ${calendarYearHeader}.`);
+        setCalendarFile(null);
+        setCalendarProgram('');
+      } else {
+        setCalendarUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setCalendarUploadStatus('Upload error');
+    }
+  };
+
+  const handleTimeTableUpload = async (e) => {
+    e.preventDefault();
+    if (!timeTableFile) {
+      setTimeTableUploadStatus('Please select a PDF file first.');
+      return;
+    }
+    
+    setTimeTableUploadStatus('Uploading...');
+    const formData = new FormData();
+    formData.append('department', timeTableDept);
+    formData.append('file', timeTableFile);
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/upload_time_table`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTimeTableUploadStatus(`Upload successful! Time Table updated for ${timeTableDept}.`);
+        setTimeTableFile(null);
+      } else {
+        setTimeTableUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setTimeTableUploadStatus('Upload error');
     }
   };
 
@@ -343,6 +434,130 @@ const AdminDashboard = () => {
               <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${policyUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
                 {policyUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                 {policyUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Academic Calendar Upload Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <BookOpen className="text-teal-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Academic Calendar</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Upload Academic Calendar PDFs. They will appear dynamically on the Academic Calendar page.</p>
+            
+            <form onSubmit={handleCalendarUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Year Header</label>
+                  <select 
+                    value={calendarYearHeader}
+                    onChange={(e) => setCalendarYearHeader(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="Academic Year 2025-26">Academic Year 2025-26</option>
+                    <option value="Academic Year 2024-25">Academic Year 2024-25</option>
+                    <option value="Academic Year 2023-24">Academic Year 2023-24</option>
+                    <option value="Academic Year 2022-23">Academic Year 2022-23</option>
+                    <option value="Academic Year 2021-22">Academic Year 2021-22</option>
+                    <option value="Academic Year 2020-21">Academic Year 2020-21</option>
+                    <option value="Academic Year 2019-20">Academic Year 2019-20</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Year (Row)</label>
+                  <input 
+                    type="text" 
+                    value={calendarYear}
+                    onChange={(e) => setCalendarYear(e.target.value)}
+                    placeholder="e.g. 2025-26"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Program Name</label>
+                  <input 
+                    type="text" 
+                    value={calendarProgram}
+                    onChange={(e) => setCalendarProgram(e.target.value)}
+                    placeholder="e.g. First Year UG Courses"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mt-2">
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  onChange={(e) => setCalendarFile(e.target.files[0])} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition-all cursor-pointer border border-gray-200 rounded-xl"
+                />
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Upload Calendar
+                </button>
+              </div>
+            </form>
+
+            {calendarUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${calendarUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {calendarUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {calendarUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Time Tables Upload Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <FileText className="text-orange-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Time Tables</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Upload Time Tables for each department. They will update on the Time Tables page.</p>
+            
+            <form onSubmit={handleTimeTableUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Select Department</label>
+                  <select 
+                    value={timeTableDept}
+                    onChange={(e) => setTimeTableDept(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  >
+                    {deptsList.map((dept, idx) => (
+                      <option key={idx} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mt-2">
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  onChange={(e) => setTimeTableFile(e.target.files[0])} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 transition-all cursor-pointer border border-gray-200 rounded-xl"
+                />
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Upload Time Table
+                </button>
+              </div>
+            </form>
+
+            {timeTableUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${timeTableUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {timeTableUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {timeTableUploadStatus}
               </div>
             )}
           </div>
