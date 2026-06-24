@@ -1,4 +1,6 @@
 import os
+import requests
+from bs4 import BeautifulSoup
 try:
     import fitz  # PyMuPDF
 except ImportError:
@@ -319,6 +321,28 @@ def extract_image_data():
                     data += f"\\n--- Image: {file} ---\\n{response.text}\\n"
                 except Exception as e:
                     print(f"Error processing image {file}: {e}")
+    return data
+
+@lru_cache(maxsize=1)
+def extract_official_website_data():
+    data = ""
+    urls_to_scrape = [
+        "https://www.anits.edu.in/",
+        "https://www.anits.edu.in/about_us.php",
+        "https://www.anits.edu.in/placements.php"
+    ]
+    for url in urls_to_scrape:
+        try:
+            response = requests.get(url, timeout=10, verify=False)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+                # Remove script and style elements
+                for script in soup(["script", "style"]):
+                    script.extract()
+                text = soup.get_text(separator=' ', strip=True)
+                data += f"\\n--- Official Page: {url} ---\\n{text}\\n"
+        except Exception as e:
+            print(f"Error scraping {url}: {e}")
     return data
 
 # Load FAQs
@@ -1051,10 +1075,12 @@ def train_model():
         extract_text_from_pdfs.cache_clear()
         extract_website_data.cache_clear()
         extract_image_data.cache_clear()
+        extract_official_website_data.cache_clear()
         # Pre-warm the caches
         extract_text_from_pdfs()
         extract_website_data()
         extract_image_data()
+        extract_official_website_data()
         return jsonify({"message": "Model training complete. New data ingested successfully."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1069,19 +1095,21 @@ MAX_MESSAGE_LENGTH = 10000
 def chat():
     # 10. Input validation
     data = request.get_json()
-    if not data or "message" not in data:
-        return jsonify({"error": "Missing 'message' field"}), 400
+    if not data:
+        return jsonify({"error": "Missing payload"}), 400
         
-    user_message = data["message"].strip()
-    if not user_message:
-        return jsonify({"error": "Message cannot be empty"}), 400
+    user_message = data.get("message", "").strip()
+    has_audio = bool(data.get("audio"))
+    
+    if not user_message and not has_audio:
+        return jsonify({"error": "Message or audio cannot be empty"}), 400
         
     if len(user_message) > 10000:
         return jsonify({"error": "Message exceeds 10000 characters limit"}), 400
 
     # 1. Auto language detection
     try:
-        lang_code = detect(user_message)
+        lang_code = detect(user_message) if user_message else "en"
     except:
         lang_code = "en"
 
@@ -1091,7 +1119,7 @@ def chat():
         try:
             # Prepare context
             pdf_context = extract_text_from_pdfs()
-            website_context = extract_website_data()
+            website_context = extract_website_data() + "\\n" + extract_official_website_data()
             image_context = extract_image_data()
             
             # Load session history
@@ -1107,13 +1135,26 @@ def chat():
                 role = "user" if msg["role"] == "user" else "model"
                 gemini_contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg["content"])]))
                 
-            gemini_contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
+            user_parts = []
+            if user_message:
+                user_parts.append(types.Part.from_text(text=user_message))
+                
+            # If there's an audio payload, decode it and attach it!
+            if "audio" in data and data["audio"]:
+                import base64
+                audio_bytes = base64.b64decode(data["audio"].split(',')[1] if ',' in data["audio"] else data["audio"])
+                user_parts.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/webm"))
+                if not user_message:
+                    user_parts.append(types.Part.from_text(text="Listen to this audio and reply naturally."))
+                    
+            gemini_contents.append(types.Content(role="user", parts=user_parts))
             
             sys_instruct = (
                 "You are a highly intelligent, conversational campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
                 "You must strictly adhere to the provided ANITS College data. If asked something outside of this data or general knowledge, politely decline unless it's general knowledge you can safely answer using Google Search. "
                 "Maintain context from the conversation naturally. "
-                f"CRITICAL: The user has typed their message in the ISO language code: '{lang_code}'. You MUST reply natively in that exact language script. Do not use English unless the user used English.\n\n"
+                "If the user speaks to you via audio, you will natively hear and detect the language. Reply in the same language. "
+                f"CRITICAL: If the user typed text, their ISO language code is: '{lang_code}'. You MUST reply natively in that exact language script. Do not use English unless the user used English.\n\n"
                 f"FAQs & Database:\n{json.dumps(faq_data)}\n\n"
                 f"Website Code & Data:\n{website_context}\n\n"
                 f"Images Data:\n{image_context}\n\n"
