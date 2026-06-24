@@ -329,7 +329,17 @@ def extract_official_website_data():
     urls_to_scrape = [
         "https://www.anits.edu.in/",
         "https://www.anits.edu.in/about_us.php",
-        "https://www.anits.edu.in/placements.php"
+        "https://www.anits.edu.in/placements.php",
+        "https://www.anits.edu.in/cse_dept.php",
+        "https://www.anits.edu.in/ece_dept.php",
+        "https://www.anits.edu.in/eee_dept.php",
+        "https://www.anits.edu.in/it_dept.php",
+        "https://www.anits.edu.in/mech_dept.php",
+        "https://www.anits.edu.in/civil_dept.php",
+        "https://www.anits.edu.in/chem_dept.php",
+        "https://www.anits.edu.in/library.php",
+        "https://www.anits.edu.in/facilities.php",
+        "https://www.anits.edu.in/contact_us.php"
     ]
     for url in urls_to_scrape:
         try:
@@ -1150,8 +1160,10 @@ def chat():
             gemini_contents.append(types.Content(role="user", parts=user_parts))
             
             sys_instruct = (
-                "You are a highly intelligent, conversational campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
-                "You must strictly adhere to the provided ANITS College data. If asked something outside of this data or general knowledge, politely decline unless it's general knowledge you can safely answer using Google Search. "
+                "You are an incredibly smart, highly capable General Intelligence AI and the official Assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
+                "You possess absolute mastery over all domains of knowledge, and you actively fetch live internet data when asked about current events, code, global knowledge, or anything outside the provided college dataset. "
+                "CRITICAL: Do NOT simply decline to answer outside questions. Use your built-in Google Search tool to answer anything the user asks you about the real world! "
+                "For ANITS-specific questions, strongly rely on the provided 'Website Code & Data' which contains scraped real-time pages from anits.edu.in. "
                 "Maintain context from the conversation naturally. "
                 "If the user speaks to you via audio, you will natively hear and detect the language. Reply in the same language. "
                 f"CRITICAL: If the user typed text, their ISO language code is: '{lang_code}'. You MUST reply natively in that exact language script. Do not use English unless the user used English.\n\n"

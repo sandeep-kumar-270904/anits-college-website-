@@ -62,6 +62,27 @@ const Chatbot = () => {
 
   const startVoice = async () => {
     try {
+      // System A: The Visual Mirror (Browser Speech API)
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recognition = null;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        recognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+          }
+          setInput(transcript); // Purely for visual feedback!
+        };
+        recognition.start();
+        // We will attach it to a ref so we can stop it later
+        window.__activeRecognition = recognition;
+      }
+
+      // System B: The Real Brain (MediaRecorder + Gemini)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
@@ -78,10 +99,13 @@ const Chatbot = () => {
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
           const base64String = reader.result;
-          handleSend(base64String);
+          handleSend(base64String); // Send the raw audio to Gemini!
         };
         stream.getTracks().forEach(track => track.stop());
         setIsListening(false);
+        if (window.__activeRecognition) {
+           window.__activeRecognition.stop();
+        }
       };
 
       mediaRecorderRef.current.start();
@@ -95,6 +119,9 @@ const Chatbot = () => {
   const stopVoice = () => {
     if (mediaRecorderRef.current && isListening) {
       mediaRecorderRef.current.stop();
+    }
+    if (window.__activeRecognition) {
+       window.__activeRecognition.stop();
     }
   };
 
