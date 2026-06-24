@@ -48,6 +48,7 @@ import ExamSection from './pages/ExamSection';
 import ELearning from './pages/ELearning';
 import AcademicCalendar from './pages/AcademicCalendar';
 import TimeTables from './pages/TimeTables';
+import IsoCertificate from './pages/IsoCertificate';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
@@ -73,7 +74,7 @@ function App() {
               <Route path="/academics/timetable" element={<TimeTables />} />
               <Route path="/academics/e-learning" element={<ELearning />} />
               <Route path="/academics/exams" element={<ExamSection />} />
-              <Route path="/academics/iso-certificate" element={<GenericAcademicPage />} />
+              <Route path="/academics/iso-certificate" element={<IsoCertificate />} />
               <Route path="/academics/apssdc" element={<Apssdc />} />
               <Route path="/academics/swayam-nptel" element={<SwayamNptel />} />
               <Route path="/academics/professional-bodies" element={<ProfessionalBodies />} />
