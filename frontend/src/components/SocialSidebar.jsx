@@ -90,7 +90,7 @@ const SocialSidebar = () => {
       
       {/* YouTube */}
       <a 
-        href="#" 
+        href="https://youtu.be/eS36IpEMTak?si=0sQh6F1lXKNLBKw1" 
         target="_blank" 
         rel="noopener noreferrer"
         className="bg-[#FF0000] text-white p-3 w-12 h-12 flex items-center justify-center shadow-md transform transition-transform hover:-translate-x-2 rounded-l-md"
