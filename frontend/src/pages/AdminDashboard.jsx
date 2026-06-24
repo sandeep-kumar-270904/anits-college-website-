@@ -200,6 +200,31 @@ const AdminDashboard = () => {
     }
   };
 
+  const [trainModelStatus, setTrainModelStatus] = useState('');
+  const [isTraining, setIsTraining] = useState(false);
+
+  const handleTrainModel = async () => {
+    setIsTraining(true);
+    setTrainModelStatus('Training in progress... This might take a few seconds.');
+    const token = localStorage.getItem('adminToken');
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/train-model', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setTrainModelStatus('✅ Model Training Complete! The chatbot has learned the new data.');
+      } else {
+        setTrainModelStatus('❌ ' + (data.error || 'Training failed'));
+      }
+    } catch (err) {
+      setTrainModelStatus('❌ Error connecting to server during training.');
+    } finally {
+      setIsTraining(false);
+    }
+  };
+
   const handleSyllabusFileChange = (e) => {
     setSyllabusFile(e.target.files[0]);
   };
@@ -678,6 +703,38 @@ const AdminDashboard = () => {
       
       <div className="max-w-6xl mx-auto px-6 space-y-8">
         
+        {/* AI Model Management Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-purple-100 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+          <div className="border-b border-gray-100 p-6 bg-purple-50/30 flex items-center gap-3">
+            <Microscope className="text-purple-600" />
+            <h2 className="text-xl font-bold text-gray-900">AI Model Management</h2>
+          </div>
+          <div className="p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+              <p className="text-gray-800 font-bold mb-1">Train the Chatbot Model</p>
+              <p className="text-gray-600 text-sm">Click this after uploading new Circulars, PDFs, or updating FAQs to force the AI to read and memorize the new data instantly.</p>
+            </div>
+            <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+              <button 
+                onClick={handleTrainModel}
+                disabled={isTraining}
+                className={`whitespace-nowrap px-8 py-3 font-bold rounded-xl transition-all shadow-md flex items-center gap-2 ${isTraining ? 'bg-purple-300 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white hover:shadow-lg hover:-translate-y-0.5'}`}
+              >
+                <MessageSquare size={18} />
+                {isTraining ? 'Training...' : 'Train the Model'}
+              </button>
+            </div>
+          </div>
+          {trainModelStatus && (
+            <div className="px-8 pb-8 pt-0">
+              <div className={`p-4 rounded-xl font-medium animate-fade-in ${trainModelStatus.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' : (trainModelStatus.includes('❌') ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}`}>
+                {trainModelStatus}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Upload Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">

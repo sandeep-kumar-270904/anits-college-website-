@@ -47,7 +47,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("JWT_SECRET", "super-secret-admin-key-for-anits")
 
 CORS(app, resources={
-    r"/chat": {"origins": ["https://anits.edu.in", "https://www.anits.edu.in"], "methods": ["POST"], "allow_headers": ["Content-Type"]},
+    r"/chat": {"origins": "*", "methods": ["POST"], "allow_headers": ["Content-Type"]},
     r"/api/*": {"origins": "*"}
 })
 
@@ -992,16 +992,29 @@ def get_enquiries():
             
     # Fallback to JSON
     data = load_enquiries()
-    # Sort descending
+    data = list(db.logs.find({}, {"_id": 0}))
     data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return jsonify(data)
 
-MAX_MESSAGE_LENGTH = 5000
+@app.route("/api/train-model", methods=["POST"])
+@token_required
+def train_model():
+    try:
+        # Clear the cache so it re-reads all PDFs
+        extract_text_from_pdfs.cache_clear()
+        # Pre-warm the cache immediately
+        extract_text_from_pdfs()
+        return jsonify({"message": "Model training complete. New data ingested successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+MAX_MESSAGE_LENGTH = 10000
 
 
 
 @app.route("/chat", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("55 per minute")
 def chat():
     # 10. Input validation
     data = request.get_json()
@@ -1012,8 +1025,8 @@ def chat():
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
         
-    if len(user_message) > 5000:
-        return jsonify({"error": "Message exceeds 5000 characters limit"}), 400
+    if len(user_message) > 10000:
+        return jsonify({"error": "Message exceeds 10000 characters limit"}), 400
 
     # 1. Auto language detection
     try:
@@ -1021,19 +1034,8 @@ def chat():
     except:
         lang_code = "en"
 
-    # 14. ML-scored FAQ matching with TF-IDF
     bot_reply = None
-    if tfidf_vectorizer and tfidf_matrix is not None:
-        try:
-            query_vec = tfidf_vectorizer.transform([user_message])
-            similarities = cosine_similarity(query_vec, tfidf_matrix).flatten()
-            max_sim_idx = similarities.argmax()
-            if similarities[max_sim_idx] >= 0.4:
-                bot_reply = faq_answers[max_sim_idx]
-        except Exception as e:
-            print("TF-IDF error:", e)
 
-    # 3. Fallback to GPT-4o mini + Context (PDF) + 16. Conversation Context
     if not bot_reply:
         try:
             # Prepare context
@@ -1054,8 +1056,14 @@ def chat():
                 
             gemini_contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
             
-            sys_instruct = "You are a helpful campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). Answer student questions based on the following context. Be concise and helpful.\n\nContext:\n" + pdf_context
-            
+            sys_instruct = (
+                "You are a highly intelligent, conversational campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
+                "You must strictly adhere to the provided ANITS College data. If asked something outside of this data or general knowledge, politely decline. "
+                "Maintain context from the conversation naturally. "
+                "CRITICAL: You MUST reply in the exact same language the user used in their prompt.\n\n"
+                f"FAQs & Database:\n{json.dumps(faq_data)}\n\n"
+                f"PDF Context:\n{pdf_context}"
+            )
             response = gemini_client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=gemini_contents,
@@ -1076,10 +1084,6 @@ def chat():
         except Exception as e:
             print("Gemini API error:", e)
             bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
-
-    # 5. Translate reply to detected language
-    if lang_code != "en":
-        bot_reply = translate_cached(bot_reply, "en", lang_code)
 
     # 7. Chat logging to SQLite
     try:
