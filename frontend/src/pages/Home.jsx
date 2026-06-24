@@ -267,15 +267,40 @@ const Home = () => {
       </section>
 
       {/* Partners Across Industries */}
-      <section className="py-16 bg-[#fcfcfc] text-center border-t border-gray-100">
+      <section className="py-16 bg-white text-center overflow-hidden border-t border-gray-100">
+        <style>{`
+          @keyframes scrollMarquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .marquee-container {
+            display: flex;
+            width: max-content;
+            animation: scrollMarquee 30s linear infinite;
+          }
+          .marquee-container:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-[28px] font-bold text-[#111] mb-10 font-['Oswald',sans-serif]">Partners Across Industries</h2>
-          <div className="flex flex-wrap justify-center items-center gap-4">
-            {['Amazon', 'Infosys', 'TCS', 'Flipkart', 'Wipro', 'Cognizant', 'Accenture', 'MEIL'].map((name, i) => (
-              <div key={i} className="border border-gray-200 rounded-md w-[130px] h-[60px] flex justify-center items-center text-[13px] font-bold text-gray-400 bg-white shadow-sm">
-                {name}
-              </div>
-            ))}
+          <h2 className="text-[28px] font-bold text-[#111] mb-12 font-['Oswald',sans-serif]">Partners Across Industries</h2>
+          
+          <div className="relative flex overflow-hidden group">
+            {/* Fading edges for smooth entry/exit */}
+            <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+            
+            <div className="marquee-container">
+              {/* Duplicate array to create the seamless infinite loop */}
+              {[
+                'Salesforce', 'Red Hat', 'AWS', 'Palo Alto', 'Blue Prism', 'UiPath', 'Celonis', 'Cisco',
+                'Salesforce', 'Red Hat', 'AWS', 'Palo Alto', 'Blue Prism', 'UiPath', 'Celonis', 'Cisco'
+              ].map((partner, i) => (
+                <div key={i} className="flex justify-center items-center px-10 py-6 mx-4 border border-gray-100 rounded-md bg-white shadow-sm hover:shadow-md hover:border-[#1e5391] transition-all cursor-pointer min-w-[200px]">
+                  <span className="font-extrabold text-[#555] tracking-wider uppercase text-lg">{partner}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
