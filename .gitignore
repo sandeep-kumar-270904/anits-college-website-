@@ -55,4 +55,6 @@ htmlcov/
 # Node (if frontend uses node)
 node_modules/
 npm-debug.log
-yarn-error.log
+yarn-error.logbackend/venv311/
+backend/instance/
+chat_logs.db

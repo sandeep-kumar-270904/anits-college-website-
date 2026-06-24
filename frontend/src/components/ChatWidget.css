@@ -1,0 +1,136 @@
+.chat-widget-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  font-family: 'Inter', sans-serif;
+}
+
+.chat-toggle {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.chat-toggle:hover {
+  transform: scale(1.1);
+}
+
+.chat-window {
+  width: 350px;
+  height: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #3b82f6;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.chat-header button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f9fafb;
+}
+
+.chat-message {
+  max-width: 80%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.chat-message p {
+  margin: 0;
+}
+
+.chat-message.bot {
+  background: #e5e7eb;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+  color: #1f2937;
+}
+
+.chat-message.user {
+  background: #3b82f6;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.chat-footer {
+  padding: 15px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  outline: none;
+}
+
+.voice-btn, .send-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.send-btn {
+  color: #3b82f6;
+}
+
+.voice-btn.listening {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}

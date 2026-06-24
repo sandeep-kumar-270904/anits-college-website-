@@ -6,6 +6,8 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -15,6 +17,12 @@ const Chatbot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      setSpeechSupported(true);
+    }
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -46,17 +54,19 @@ const Chatbot = () => {
   };
 
   const startVoice = () => {
+    if (!speechSupported) return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.start();
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-      };
-    } else {
-      alert("Speech recognition not supported in this browser.");
-    }
+    const recognition = new SpeechRecognition();
+    
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+    
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+    };
+    recognition.start();
   };
 
   return (
@@ -69,7 +79,7 @@ const Chatbot = () => {
         <div className="chat-body">
           {messages.length === 0 && (
             <div style={{textAlign: 'center', color: '#666', marginTop: '20px'}}>
-              Hello! How can I help you today?
+              Hello! How can I help you today? You can type or speak in any language.
             </div>
           )}
           {messages.map((msg, idx) => (
@@ -92,7 +102,11 @@ const Chatbot = () => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <button onClick={startVoice} title="Use Microphone"><Mic size={18} /></button>
+          {speechSupported && (
+            <button onClick={startVoice} title="Use Microphone" style={{ color: isListening ? 'red' : 'currentColor' }}>
+              <Mic size={18} />
+            </button>
+          )}
           <button onClick={handleSend}><Send size={18} /></button>
         </div>
       </div>

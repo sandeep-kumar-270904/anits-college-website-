@@ -9,3 +9,5 @@ deep-translator  # for translations
 pymongo        # MongoDB driver
 PyJWT          # JSON Web Tokens for auth
 google-generativeai # Google Gemini API
+Flask-SQLAlchemy   # Database ORM
+scikit-learn       # TF-IDF for ML-scored FAQ matching

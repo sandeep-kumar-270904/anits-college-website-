@@ -4,7 +4,7 @@ try:
 except ImportError:
     import pymupdf as fitz
 import json
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, Response, session
 from flask_cors import CORS
 from dotenv import load_dotenv
 from langdetect import detect
@@ -21,6 +21,13 @@ import jwt
 from werkzeug.utils import secure_filename
 import uuid
 from flask import send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.pool import NullPool
+import csv
+import io
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # Load API keys from .env
 load_dotenv()
@@ -37,7 +44,29 @@ if GEMINI_API_KEY:
 
 # Flask app
 app = Flask(__name__)
-CORS(app)
+app.secret_key = os.getenv("JWT_SECRET", "super-secret-admin-key-for-anits")
+
+CORS(app, resources={
+    r"/chat": {"origins": ["https://anits.edu.in", "https://www.anits.edu.in"], "methods": ["POST"], "allow_headers": ["Content-Type"]},
+    r"/api/*": {"origins": "*"}
+})
+
+# SQLite Database for Chat Logging
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat_logs.db'
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'poolclass': NullPool}
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+sql_db = SQLAlchemy(app)
+
+class ChatLog(sql_db.Model):
+    __tablename__ = 'chat_logs'
+    id = sql_db.Column(sql_db.Integer, primary_key=True)
+    user_message = sql_db.Column(sql_db.Text, nullable=False)
+    bot_reply = sql_db.Column(sql_db.Text, nullable=False)
+    detected_language = sql_db.Column(sql_db.String(10), nullable=False)
+    timestamp = sql_db.Column(sql_db.DateTime, default=datetime.utcnow)
+
+with app.app_context():
+    sql_db.create_all()
 
 # Rate Limiter
 limiter = Limiter(
@@ -63,10 +92,8 @@ try:
     mongo_client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
     db = mongo_client['anits_db']
-    chat_logs = db['chat_logs']
     enquiries_collection = db['enquiries']
     # Ensure indexes
-    chat_logs.create_index([("language", 1), ("timestamp", -1)])
     enquiries_collection.create_index([("timestamp", -1)])
 except Exception as e:
     print("MongoDB connection error:", e)
@@ -253,6 +280,18 @@ faq_path = "../data/faqs.json"
 if os.path.exists(faq_path):
     with open(faq_path, "r", encoding="utf-8") as f:
         faq_data = json.load(f)
+
+# Initialize TF-IDF Vectorizer for FAQs
+faq_questions = []
+faq_answers = []
+tfidf_vectorizer = None
+tfidf_matrix = None
+
+if faq_data:
+    faq_questions = [item.get("question", "") for item in faq_data]
+    faq_answers = [item.get("answer", "") for item in faq_data]
+    tfidf_vectorizer = TfidfVectorizer()
+    tfidf_matrix = tfidf_vectorizer.fit_transform(faq_questions)
 
 @lru_cache(maxsize=1000)
 def translate_cached(text: str, src: str, dest: str) -> str:
@@ -959,203 +998,207 @@ def get_enquiries():
 
 MAX_MESSAGE_LENGTH = 5000
 
+
+
 @app.route("/chat", methods=["POST"])
-@limiter.limit("10 per minute")
+@limiter.limit("5 per minute")
 def chat():
+    # 10. Input validation
     data = request.get_json()
-    user_message = data.get("message", "")
-    
+    if not data or "message" not in data:
+        return jsonify({"error": "Missing 'message' field"}), 400
+        
+    user_message = data["message"].strip()
     if not user_message:
-        return jsonify({"error": "Message is required"}), 400
+        return jsonify({"error": "Message cannot be empty"}), 400
         
-    if len(user_message) > MAX_MESSAGE_LENGTH:
-        return jsonify({"error": "Message is too long"}), 400
+    if len(user_message) > 5000:
+        return jsonify({"error": "Message exceeds 5000 characters limit"}), 400
 
-    # Detect language (only for longer strings to prevent misclassification of short greetings)
-    lang = "en"
-    if len(user_message) > 15:
+    # 1. Auto language detection
+    try:
+        lang_code = detect(user_message)
+    except:
+        lang_code = "en"
+
+    # 14. ML-scored FAQ matching with TF-IDF
+    bot_reply = None
+    if tfidf_vectorizer and tfidf_matrix is not None:
         try:
-            lang = detect(user_message)
-        except Exception:
-            lang = "en"
-
-    # Translate to English
-    if lang != "en":
-        translated_input = translate_cached(user_message, src=lang, dest="en")
-    else:
-        translated_input = user_message
-
-    # Search FAQs
-    found = False
-    answer = ""
-    for faq in faq_data:
-        if faq["question"].lower() in translated_input.lower():
-            answer = faq["answer"]
-            found = True
-            break
-            
-    if not found:
-        # Fallback to LLM if FAQ not found
-        context = extract_text_from_pdfs()
-        answer = None
-        
-        if GEMINI_API_KEY:
-            try:
-                model = genai.GenerativeModel("gemini-2.5-flash")
-                prompt = f"You are a helpful campus assistant for ANITS College. Use this context if relevant: {context}. Keep responses concise and helpful. DO NOT use markdown formatting (no asterisks, bold, etc). Use plain text only.\nUser: {translated_input}"
-                response = model.generate_content(prompt)
-                answer = response.text
-            except Exception as e:
-                print(f"Gemini Error: {e}")
-                
-        if not answer and OPENAI_API_KEY:
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": f"You are a helpful campus assistant for ANITS College. Use this context if relevant: {context}. Keep responses concise and helpful. DO NOT use markdown formatting (no asterisks, bold, etc). Use plain text only."},
-                        {"role": "user", "content": translated_input}
-                    ],
-                    max_tokens=300
-                )
-                answer = response.choices[0].message.content
-            except Exception as e:
-                print(f"OpenAI Error: {e}")
-                
-        if not answer:
-            answer = "I'm not sure. Let me connect you to office staff. You can email info@anits.edu.in or call +91-891-2841111."
-
-    # Translate answer back
-    if lang != "en":
-        final_reply = translate_cached(answer, src="en", dest=lang)
-    else:
-        final_reply = answer
-
-    # Log conversation to MongoDB
-    if chat_logs is not None:
-        log_doc = {
-            "user_message": user_message,
-            "bot_reply": final_reply,
-            "language": lang,
-            "timestamp": datetime.utcnow()
-        }
-        try:
-            chat_logs.insert_one(log_doc)
+            query_vec = tfidf_vectorizer.transform([user_message])
+            similarities = cosine_similarity(query_vec, tfidf_matrix).flatten()
+            max_sim_idx = similarities.argmax()
+            if similarities[max_sim_idx] >= 0.4:
+                bot_reply = faq_answers[max_sim_idx]
         except Exception as e:
-            print(f"MongoDB Insert Error: {e}")
+            print("TF-IDF error:", e)
 
-    return jsonify({"reply": final_reply})
+    # 3. Fallback to GPT-4o mini + Context (PDF) + 16. Conversation Context
+    if not bot_reply:
+        try:
+            # Prepare context
+            pdf_context = extract_text_from_pdfs()
+            
+            # Load session history
+            if 'chat_history' not in session:
+                session['chat_history'] = []
+                
+            history = session['chat_history']
+            
+            messages = [
+                {"role": "system", "content": "You are a helpful campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). Answer student questions based on the following context. Be concise and helpful.\n\nContext:\n" + pdf_context}
+            ]
+            
+            # Add history (last 5 interactions = 10 messages max)
+            for msg in history[-10:]:
+                messages.append(msg)
+                
+            messages.append({"role": "user", "content": user_message})
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=300
+            )
+            bot_reply = response.choices[0].message.content.strip()
+            
+            # Save history
+            history.append({"role": "user", "content": user_message})
+            history.append({"role": "assistant", "content": bot_reply})
+            # Keep only last 5 exchanges (10 messages)
+            session['chat_history'] = history[-10:]
+            session.modified = True
+            
+        except Exception as e:
+            print("OpenAI error:", e)
+            bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
 
-@app.route("/logs", methods=["GET"])
-@token_required
-def get_logs():
-    if chat_logs is None:
-        return jsonify([])
-    logs = list(chat_logs.find().sort("timestamp", -1).limit(100))
-    log_list = []
-    for log in logs:
-        log_list.append({
-            "id": str(log["_id"]),
-            "user_message": log.get("user_message", ""),
-            "bot_reply": log.get("bot_reply", ""),
-            "language": log.get("language", ""),
-            "timestamp": log.get("timestamp", datetime.utcnow()).strftime("%Y-%m-%d %H:%M:%S")
-        })
-    return jsonify(log_list)
+    # 5. Translate reply to detected language
+    if lang_code != "en":
+        bot_reply = translate_cached(bot_reply, "en", lang_code)
+
+    # 7. Chat logging to SQLite
+    try:
+        new_log = ChatLog(
+            user_message=user_message,
+            bot_reply=bot_reply,
+            detected_language=lang_code,
+            timestamp=datetime.utcnow()
+        )
+        sql_db.session.add(new_log)
+        sql_db.session.commit()
+    except Exception as e:
+        print("SQLite log error:", e)
+        sql_db.session.rollback()
+
+    return jsonify({"reply": bot_reply})
 
 @app.route("/analytics", methods=["GET"])
-@token_required
-def get_analytics():
-    if chat_logs is None:
-        return jsonify({"language_usage": {}, "frequent_questions": {}})
-    pipeline = [
-        {"$group": {"_id": "$language", "count": {"$sum": 1}}}
-    ]
-    lang_stats = list(chat_logs.aggregate(pipeline))
-    language_count = {doc["_id"]: doc["count"] for doc in lang_stats if doc["_id"]}
-    
-    # Getting frequent questions could be heavy, simplified version
-    q_pipeline = [
-        {"$group": {"_id": "$user_message", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-        {"$limit": 10}
-    ]
-    q_stats = list(chat_logs.aggregate(q_pipeline))
-    question_count = {doc["_id"]: doc["count"] for doc in q_stats if doc["_id"]}
-    
-    return jsonify({
-        "language_usage": language_count,
-        "frequent_questions": question_count
-    })
+def analytics():
+    try:
+        total_messages = ChatLog.query.count()
+        
+        # Language breakdown
+        langs = sql_db.session.query(ChatLog.detected_language, sql_db.func.count(ChatLog.id)).group_by(ChatLog.detected_language).all()
+        language_breakdown = {lang: count for lang, count in langs}
+        
+        # Top 10 frequently asked questions
+        top_questions_query = sql_db.session.query(ChatLog.user_message, sql_db.func.count(ChatLog.id)).group_by(ChatLog.user_message).order_by(sql_db.func.count(ChatLog.id).desc()).limit(10).all()
+        top_questions = {q: c for q, c in top_questions_query}
+        
+        return jsonify({
+            "total_messages": total_messages,
+            "language_usage": language_breakdown,
+            "top_questions": top_questions
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route("/admin")
+@app.route("/admin", methods=["GET"])
 def admin_dashboard():
-    if chat_logs is None:
-        return "Database not connected."
-    logs = list(chat_logs.find().sort("timestamp", -1).limit(50))
-    
-    pipeline = [{"$group": {"_id": "$language", "count": {"$sum": 1}}}]
-    lang_stats = list(chat_logs.aggregate(pipeline))
-    language_count = {doc["_id"]: doc["count"] for doc in lang_stats if doc["_id"]}
-    
-    q_pipeline = [
-        {"$group": {"_id": "$user_message", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-        {"$limit": 10}
-    ]
-    q_stats = list(chat_logs.aggregate(q_pipeline))
-    question_count = {doc["_id"]: doc["count"] for doc in q_stats if doc["_id"]}
-
-    dashboard_html = '''
+    # 9. GET /admin dashboard inline HTML
+    html = """
+    <!DOCTYPE html>
     <html>
     <head>
-        <title>Admin Dashboard</title>
+        <title>ANITS Chatbot Admin</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 5px; }
+            table { border-collapse: collapse; width: 100%; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
         </style>
     </head>
     <body>
-        <h1>Chatbot Dashboard (MongoDB)</h1>
+        <h1>Chatbot Admin Dashboard</h1>
+        <div class="card" id="stats">Loading analytics...</div>
+        <a href="/export" style="display: inline-block; margin: 10px 0; padding: 10px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Download CSV Logs</a>
         
-        <h2>Analytics</h2>
-        <div style="display: flex; gap: 50px;">
-            <div>
-                <h3>Language Usage</h3>
-                <ul>
-                {% for lang, count in language_count.items() %}
-                    <li>{{ lang }}: {{ count }}</li>
-                {% endfor %}
-                </ul>
-            </div>
-            <div>
-                <h3>Top Questions</h3>
-                <ul>
-                {% for question, count in question_count.items() %}
-                    <li>{{ question }}: {{ count }}</li>
-                {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <h2>Recent Logs</h2>
-        <table>
-            <tr><th>User Message</th><th>Bot Reply</th><th>Language</th><th>Timestamp</th></tr>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.user_message }}</td>
-                <td>{{ log.bot_reply }}</td>
-                <td>{{ log.language }}</td>
-                <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else '' }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <script>
+            fetch('/analytics')
+                .then(r => r.json())
+                .then(data => {
+                    if(data.error) {
+                        document.getElementById('stats').innerText = 'Error loading data: ' + data.error;
+                        return;
+                    }
+                    
+                    let langHtml = '<ul>' + Object.entries(data.language_usage).map(([k,v]) => `<li>${k}: ${v}</li>`).join('') + '</ul>';
+                    let topQHtml = '<ul>' + Object.entries(data.top_questions).map(([k,v]) => `<li>${k} (${v} times)</li>`).join('') + '</ul>';
+                    
+                    document.getElementById('stats').innerHTML = `
+                        <h3>Total Messages: ${data.total_messages}</h3>
+                        <h4>Language Usage:</h4> ${langHtml}
+                        <h4>Top 10 Questions:</h4> ${topQHtml}
+                    `;
+                })
+                .catch(e => {
+                    document.getElementById('stats').innerText = 'Fetch error: ' + e;
+                });
+        </script>
     </body>
     </html>
-    '''
-    return render_template_string(dashboard_html, logs=logs, language_count=language_count, question_count=question_count)
+    """
+    return html
+
+@app.route("/export", methods=["GET"])
+def export_logs():
+    try:
+        logs = ChatLog.query.order_by(ChatLog.timestamp.desc()).all()
+        
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['id', 'user_message', 'bot_reply', 'detected_language', 'timestamp'])
+        
+        for log in logs:
+            cw.writerow([log.id, log.user_message, log.bot_reply, log.detected_language, log.timestamp.isoformat() if log.timestamp else ''])
+            
+        output = si.getvalue()
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment;filename=chat_logs.csv"}
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    try:
+        # Check DB connection
+        ChatLog.query.limit(1).all()
+        return jsonify({
+            "status": "ok",
+            "db_connected": True,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "reason": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
