@@ -187,9 +187,11 @@ const Home = () => {
           .rotate-y-180 { transform: rotateY(180deg); }
           
           @keyframes flipLoop {
-            0%, 15% { transform: rotateY(0deg); }
-            20%, 65% { transform: rotateY(180deg); }
-            70%, 100% { transform: rotateY(360deg); }
+            0% { transform: rotateY(0deg); }
+            4.16% { transform: rotateY(180deg); }
+            12.5% { transform: rotateY(180deg); }
+            16.66% { transform: rotateY(360deg); }
+            100% { transform: rotateY(360deg); }
           }
           
           .animate-flip-0 { animation: flipLoop 12s infinite; animation-delay: 0s; }
