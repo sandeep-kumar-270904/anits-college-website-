@@ -18,7 +18,7 @@ const Home = () => {
   }, [images.length]);
 
   return (
-    <div className="font-sans text-gray-800 bg-white pt-[100px]">
+    <div className="font-sans text-gray-800 bg-white">
       <Helmet>
         <title>ANITS | Anil Neerukonda Institute of Technology & Sciences</title>
       </Helmet>
