@@ -6,6 +6,7 @@ import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen,
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   
@@ -109,6 +110,7 @@ const AdminDashboard = () => {
     }
     fetchLogs(token);
     fetchEnquiries(token);
+    fetchAnalytics(token);
   }, [navigate]);
 
   const fetchLogs = async (token) => {
@@ -128,6 +130,24 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error('Failed to fetch logs', err);
     }
+  };
+
+  const fetchAnalytics = async (token) => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/analytics', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch analytics', err);
+    }
+  };
+
+  const handleExportCSV = () => {
+    window.location.href = 'http://127.0.0.1:5000/export';
   };
 
   const fetchEnquiries = async (token) => {
@@ -1498,11 +1518,59 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Analytics Card */}
+        {analytics && (
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+              <TrendingUp className="text-orange-600" />
+              <h2 className="text-xl font-bold text-gray-900">Chatbot Analytics</h2>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Language Usage</h3>
+                <ul className="space-y-3">
+                  {Object.entries(analytics.language_usage).map(([lang, count]) => (
+                    <li key={lang} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <span className="font-bold text-gray-700">{lang}</span>
+                      <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-bold">{count}</span>
+                    </li>
+                  ))}
+                  {Object.keys(analytics.language_usage).length === 0 && (
+                    <li className="text-gray-500 font-medium">No language data available.</li>
+                  )}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-800 mb-4">Top Questions</h3>
+                <ul className="space-y-3">
+                  {Object.entries(analytics.frequent_questions).map(([question, count]) => (
+                    <li key={question} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <span className="font-medium text-gray-700 truncate mr-4">{question}</span>
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">{count}</span>
+                    </li>
+                  ))}
+                  {Object.keys(analytics.frequent_questions).length === 0 && (
+                    <li className="text-gray-500 font-medium">No question data available.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Logs Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
-            <MessageSquare className="text-indigo-600" />
-            <h2 className="text-xl font-bold text-gray-900">Live Chatbot Logs</h2>
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <MessageSquare className="text-indigo-600" />
+              <h2 className="text-xl font-bold text-gray-900">Live Chatbot Logs</h2>
+            </div>
+            <button 
+              onClick={handleExportCSV}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
+            >
+              Export CSV
+            </button>
           </div>
           
           <div className="overflow-x-auto">
