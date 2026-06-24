@@ -13,17 +13,15 @@ const IsoCertificate = () => {
           ISO 9001:2015 Certificate
         </h1>
         
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex justify-center">
-          {/* We are using a placeholder image path. You can replace this file in the public/assets directory */}
-          <img 
-            src="/assets/iso-certificate.jpg" 
-            alt="ISO 9001:2015 Certificate" 
-            className="max-w-full h-auto rounded border border-gray-100 shadow-sm"
-            onError={(e) => {
-              e.target.onerror = null; 
-              e.target.src = "https://via.placeholder.com/800x1100?text=Please+Upload+ISO+Certificate+to+/assets/iso-certificate.jpg";
-            }}
-          />
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex justify-center w-full" style={{ height: '800px' }}>
+          {/* We are using an iframe to embed the PDF. You can place the PDF file in the public/assets directory */}
+          <iframe 
+            src="/assets/iso-certificate.pdf" 
+            title="ISO 9001:2015 Certificate"
+            className="w-full h-full rounded border border-gray-100 shadow-sm"
+          >
+            <p>Your browser does not support PDFs. <a href="/assets/iso-certificate.pdf">Download the PDF</a>.</p>
+          </iframe>
         </div>
       </div>
     </div>
