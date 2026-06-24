@@ -50,12 +50,14 @@ import AcademicCalendar from './pages/AcademicCalendar';
 import TimeTables from './pages/TimeTables';
 import IsoCertificate from './pages/IsoCertificate';
 import ScrollToTop from './components/ScrollToTop';
+import SocialSidebar from './components/SocialSidebar';
 
 function App() {
   return (
     <HelmetProvider>
       <Router>
         <ScrollToTop />
+        <SocialSidebar />
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main>
