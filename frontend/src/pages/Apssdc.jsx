@@ -15,22 +15,22 @@ const Apssdc = () => {
         <div className="w-full border-b border-dashed border-gray-400 mb-8"></div>
         
         {/* Tabs */}
-        <div className="flex flex-wrap gap-4 mb-8 justify-center md:justify-start">
+        <div className="flex flex-wrap gap-4 mb-8">
           <button 
             onClick={() => setActiveTab('home')}
-            className={`px-10 py-3 text-sm font-medium rounded-sm border ${activeTab === 'home' ? 'border-gray-200 shadow-sm bg-white text-gray-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-10 py-3 text-[14px] font-medium rounded-md border ${activeTab === 'home' ? 'border-gray-200 shadow-sm bg-white text-gray-800' : 'border-gray-100 bg-white text-gray-500 hover:bg-gray-50'}`}
           >
             APSSDC Home
           </button>
           <button 
             onClick={() => setActiveTab('events')}
-            className={`px-10 py-3 text-sm font-medium rounded-sm border ${activeTab === 'events' ? 'border-gray-200 shadow-sm bg-white text-gray-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-10 py-3 text-[14px] font-medium rounded-md border ${activeTab === 'events' ? 'border-gray-200 shadow-sm bg-white text-gray-800' : 'border-gray-100 bg-white text-gray-500 hover:bg-gray-50'}`}
           >
             APSSDC Events
           </button>
           <button 
             onClick={() => setActiveTab('mous')}
-            className={`px-10 py-3 text-sm font-medium rounded-sm border ${activeTab === 'mous' ? 'border-gray-200 shadow-sm bg-white text-gray-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-10 py-3 text-[14px] font-medium rounded-md border ${activeTab === 'mous' ? 'border-gray-200 shadow-sm bg-white text-gray-800' : 'border-gray-100 bg-white text-gray-500 hover:bg-gray-50'}`}
           >
             APSSDC Mous
           </button>
@@ -39,17 +39,16 @@ const Apssdc = () => {
         {/* Content */}
         {activeTab === 'home' && (
           <div className="animate-fade-in">
-            <h2 className="text-xl font-bold text-[#333] mb-4 uppercase tracking-wide font-['Oswald',sans-serif]">ABOUT SKILL DEVELOPMENT:</h2>
+            <h2 className="text-[22px] font-bold text-[#333] mb-4 uppercase tracking-wide font-['Oswald',sans-serif]">ABOUT SKILL DEVELOPMENT:</h2>
             <div className="w-full border-b border-dashed border-gray-400 mb-6"></div>
             
-            <p className="text-gray-600 text-[15px] leading-relaxed mb-6 text-justify">
+            <p className="text-gray-600 text-[15px] leading-relaxed mb-6">
               The main objective of the skill development program is to provide adequate training in industry relevant skills and industry
               readiness. Skill development is the time one invests in to improve their proficiency and to stay future-ready, any agilities that one
               follows as a passion judi togel, and the ability to complete a task with higher rates of success at the right time. ANITS is associated
               with Andhra Pradesh State Skill Development Corporation (APSSDC)to train students on latest technologies. The training improve
               their critical thinking, problem solving skills to get placed in various skilled jobs and entrepreneurialism. As part of skill
               development center, the lab is established with 37 high configured computers.
-              <br/><br/>
               readiness. Skill development is the time one invests in to improve their proficiency and to stay future-ready, any agilities that one
               follows as a passion judi togel, and the ability to complete a task with higher rates of success at the right time. ANITS is associated
               with Andhra Pradesh State Skill Development Corporation (APSSDC)to train students on latest technologies. The training improve
