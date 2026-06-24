@@ -9,6 +9,7 @@ const Home = () => {
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -16,6 +17,19 @@ const Home = () => {
     }, 5000);
     return () => clearInterval(timer);
   }, [images.length]);
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    fetch(`${API_URL}/api/events`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          // Show newest events first
+          setEvents(data.reverse());
+        }
+      })
+      .catch(err => console.error("Failed to fetch events:", err));
+  }, []);
 
   return (
     <div className="font-sans text-gray-800 bg-white">
@@ -142,26 +156,23 @@ const Home = () => {
             <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden h-[350px]">
               <div className="bg-[#1e5391] text-white px-4 py-3 font-bold font-['Oswald',sans-serif] uppercase tracking-wider text-[17px]">Events</div>
               <div className="p-4 space-y-4 h-full overflow-y-auto">
-                <div className="flex gap-4 border-b border-gray-100 pb-4">
-                  <div className="bg-[#1e5391] text-white w-14 h-14 flex flex-col justify-center items-center rounded-sm font-bold flex-shrink-0">
-                    <span className="text-xs">Feb</span><span className="text-[22px] leading-none">20</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-[#222] text-sm">Tiriyananmidy?</div>
-                    <div className="text-[13px] text-gray-500 mt-1">Special guest lecture series...</div>
-                    <div className="text-[11px] text-[#3b82f6] mt-2 font-bold cursor-pointer">READ MORE &gt;</div>
-                  </div>
-                </div>
-                <div className="flex gap-4 border-b border-gray-100 pb-4">
-                  <div className="bg-[#1e5391] text-white w-14 h-14 flex flex-col justify-center items-center rounded-sm font-bold flex-shrink-0">
-                    <span className="text-xs">Jan</span><span className="text-[22px] leading-none">28</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-[#222] text-sm">REPUBLIC DAY CELEBRATIONS</div>
-                    <div className="text-[13px] text-gray-500 mt-1">Flag hoisting at 8:30 AM...</div>
-                    <div className="text-[11px] text-[#3b82f6] mt-2 font-bold cursor-pointer">READ MORE &gt;</div>
-                  </div>
-                </div>
+                {events.length === 0 ? (
+                  <div className="text-gray-500 italic text-sm p-4">No upcoming events currently scheduled.</div>
+                ) : (
+                  events.map(event => (
+                    <div key={event.id} className="flex gap-4 border-b border-gray-100 pb-4">
+                      <div className="bg-[#1e5391] text-white w-14 h-14 flex flex-col justify-center items-center rounded-sm font-bold flex-shrink-0 text-center px-1">
+                        <span className="text-[10px] uppercase leading-tight">{event.date.substring(0, 3)}</span>
+                        <span className="text-[18px] leading-none">{event.date.match(/\d+/) ? event.date.match(/\d+/)[0] : 'Event'}</span>
+                      </div>
+                      <div>
+                        <div className="font-bold text-[#222] text-sm">{event.title}</div>
+                        <div className="text-[12px] text-pink-600 font-bold mt-1">{event.date}</div>
+                        <div className="text-[13px] text-gray-500 mt-1 line-clamp-2">{event.description}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
             <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden h-[350px]">

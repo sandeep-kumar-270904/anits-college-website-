@@ -108,6 +108,19 @@ def save_time_tables(data):
     with open(time_tables_file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
+# Events Data Handling
+events_file_path = "../data/events.json"
+def load_events():
+    if os.path.exists(events_file_path):
+        with open(events_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_events(data):
+    os.makedirs(os.path.dirname(events_file_path), exist_ok=True)
+    with open(events_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
 # PDF Loader
 @lru_cache(maxsize=1)
 def extract_text_from_pdfs():
@@ -391,6 +404,47 @@ def get_time_tables():
 def serve_time_table_file(filename):
     pdf_dir = "../data/time_table_files"
     return send_from_directory(pdf_dir, filename)
+
+@app.route("/api/events", methods=["GET"])
+def get_events():
+    data = load_events()
+    return jsonify(data)
+
+@app.route("/api/events", methods=["POST"])
+@token_required
+def add_event():
+    data = request.get_json()
+    title = data.get("title")
+    date = data.get("date")
+    description = data.get("description")
+    
+    if not title or not date or not description:
+        return jsonify({"error": "Title, date, and description are required"}), 400
+        
+    events_data = load_events()
+    new_event = {
+        "id": str(uuid.uuid4())[:8],
+        "title": title,
+        "date": date,
+        "description": description,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    events_data.append(new_event)
+    save_events(events_data)
+    
+    return jsonify({"message": "Event added successfully", "event": new_event})
+
+@app.route("/api/events/<event_id>", methods=["DELETE"])
+@token_required
+def delete_event(event_id):
+    events_data = load_events()
+    filtered_data = [e for e in events_data if e.get("id") != event_id]
+    
+    if len(filtered_data) == len(events_data):
+        return jsonify({"error": "Event not found"}), 404
+        
+    save_events(filtered_data)
+    return jsonify({"message": "Event deleted successfully"})
 
 MAX_MESSAGE_LENGTH = 5000
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText } from 'lucide-react';
+import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
@@ -30,6 +30,12 @@ const AdminDashboard = () => {
   const [timeTableDept, setTimeTableDept] = useState('Chemical Engineering');
   const [timeTableFile, setTimeTableFile] = useState(null);
   const [timeTableUploadStatus, setTimeTableUploadStatus] = useState('');
+
+  // Events state
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventUploadStatus, setEventUploadStatus] = useState('');
 
   const policiesList = [
     "Research and Development Policy", "Innovation and Entrepreneurship Policy", "Institutional Ethics Policy",
@@ -260,6 +266,45 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       setTimeTableUploadStatus('Upload error');
+    }
+  };
+
+  const handleEventUpload = async (e) => {
+    e.preventDefault();
+    if (!eventTitle || !eventDate || !eventDescription) {
+      setEventUploadStatus('Please fill in all event details.');
+      return;
+    }
+    
+    setEventUploadStatus('Adding event...');
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/events`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: eventTitle,
+          date: eventDate,
+          description: eventDescription
+        })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setEventUploadStatus('Upload successful! Event added to Notice Board.');
+        setEventTitle('');
+        setEventDate('');
+        setEventDescription('');
+      } else {
+        setEventUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setEventUploadStatus('Upload error');
     }
   };
 
@@ -558,6 +603,67 @@ const AdminDashboard = () => {
               <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${timeTableUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
                 {timeTableUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                 {timeTableUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Notice Board & Events Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <Bell className="text-pink-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Notice Board & Events</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Add new events or notices here. They will instantly appear on the public Home Page.</p>
+            
+            <form onSubmit={handleEventUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Event Title</label>
+                  <input 
+                    type="text" 
+                    value={eventTitle}
+                    onChange={(e) => setEventTitle(e.target.value)}
+                    placeholder="e.g. Annual Tech Fest 2026"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Event Date / Deadline</label>
+                  <input 
+                    type="text" 
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    placeholder="e.g. Oct 15, 2026"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                  <textarea 
+                    value={eventDescription}
+                    onChange={(e) => setEventDescription(e.target.value)}
+                    placeholder="Provide details about the event or notice..."
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all min-h-[100px]"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Publish to Notice Board
+                </button>
+              </div>
+            </form>
+
+            {eventUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${eventUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {eventUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {eventUploadStatus}
               </div>
             )}
           </div>
