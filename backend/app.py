@@ -260,18 +260,65 @@ def save_alumni(data):
 @lru_cache(maxsize=1)
 def extract_text_from_pdfs():
     data = ""
-    pdf_dir = "../data/circulars"
-    if not os.path.isdir(pdf_dir):
-        return data
-        
-    for file in os.listdir(pdf_dir):
-        if file.endswith(".pdf"):
-            try:
-                with fitz.open(os.path.join(pdf_dir, file)) as doc:
-                    for page in doc:
-                        data += page.get_text()
-            except Exception as e:
-                print(f"Error reading {file}: {e}")
+    pdf_dirs = [
+        "../data/circulars", "../data/syllabus", "../data/policies", 
+        "../data/academic_calendar", "../data/time_tables"
+    ]
+    for pdf_dir in pdf_dirs:
+        if not os.path.isdir(pdf_dir):
+            continue
+        for file in os.listdir(pdf_dir):
+            if file.endswith(".pdf"):
+                try:
+                    with fitz.open(os.path.join(pdf_dir, file)) as doc:
+                        for page in doc:
+                            data += page.get_text()
+                except Exception as e:
+                    print(f"Error reading {file}: {e}")
+    return data
+
+@lru_cache(maxsize=1)
+def extract_website_data():
+    data = ""
+    src_dirs = ["../frontend/src/pages", "../frontend/src/components", "../frontend/src/data"]
+    for src_dir in src_dirs:
+        if not os.path.isdir(src_dir):
+            continue
+        for root, _, files in os.walk(src_dir):
+            for file in files:
+                if file.endswith((".js", ".jsx")):
+                    try:
+                        with open(os.path.join(root, file), "r", encoding="utf-8") as f:
+                            data += f"\\n--- File: {file} ---\\n"
+                            data += f.read()
+                    except Exception as e:
+                        print(f"Error reading {file}: {e}")
+    return data
+
+@lru_cache(maxsize=1)
+def extract_image_data():
+    if not gemini_client: return ""
+    data = ""
+    img_dirs = ["../data/gallery", "../data/blogs"]
+    for img_dir in img_dirs:
+        if not os.path.isdir(img_dir):
+            continue
+        for file in os.listdir(img_dir):
+            if file.lower().endswith((".png", ".jpg", ".jpeg")):
+                try:
+                    # Upload to Gemini using File API or pass bytes directly
+                    with open(os.path.join(img_dir, file), "rb") as f:
+                        image_bytes = f.read()
+                    response = gemini_client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=[
+                            types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                            "Describe this image in extreme detail and transcribe any text you see in it. This is for a college website database."
+                        ]
+                    )
+                    data += f"\\n--- Image: {file} ---\\n{response.text}\\n"
+                except Exception as e:
+                    print(f"Error processing image {file}: {e}")
     return data
 
 # Load FAQs
@@ -1000,10 +1047,14 @@ def get_enquiries():
 @token_required
 def train_model():
     try:
-        # Clear the cache so it re-reads all PDFs
+        # Clear the caches
         extract_text_from_pdfs.cache_clear()
-        # Pre-warm the cache immediately
+        extract_website_data.cache_clear()
+        extract_image_data.cache_clear()
+        # Pre-warm the caches
         extract_text_from_pdfs()
+        extract_website_data()
+        extract_image_data()
         return jsonify({"message": "Model training complete. New data ingested successfully."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1040,6 +1091,8 @@ def chat():
         try:
             # Prepare context
             pdf_context = extract_text_from_pdfs()
+            website_context = extract_website_data()
+            image_context = extract_image_data()
             
             # Load session history
             if 'chat_history' not in session:
@@ -1058,10 +1111,12 @@ def chat():
             
             sys_instruct = (
                 "You are a highly intelligent, conversational campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
-                "You must strictly adhere to the provided ANITS College data. If asked something outside of this data or general knowledge, politely decline. "
+                "You must strictly adhere to the provided ANITS College data. If asked something outside of this data or general knowledge, politely decline unless it's general knowledge you can safely answer using Google Search. "
                 "Maintain context from the conversation naturally. "
                 "CRITICAL: You MUST reply in the exact same language the user used in their prompt.\n\n"
                 f"FAQs & Database:\n{json.dumps(faq_data)}\n\n"
+                f"Website Code & Data:\n{website_context}\n\n"
+                f"Images Data:\n{image_context}\n\n"
                 f"PDF Context:\n{pdf_context}"
             )
             response = gemini_client.models.generate_content(
@@ -1069,7 +1124,8 @@ def chat():
                 contents=gemini_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=sys_instruct,
-                    max_output_tokens=300
+                    max_output_tokens=300,
+                    tools=[{"google_search": {}}]
                 )
             )
             bot_reply = response.text.strip()
