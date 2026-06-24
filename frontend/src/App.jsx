@@ -40,6 +40,9 @@ import WomenEmpowerment from './pages/WomenEmpowerment';
 import WomenGrievance from './pages/WomenGrievance';
 import Iqac from './pages/Iqac';
 import Research from './pages/Research';
+import Gallery from './pages/Gallery';
+import Blogs from './pages/Blogs';
+import Alumni from './pages/Alumni';
 import GenericAcademicPage from './pages/GenericAcademicPage';
 import Apssdc from './pages/Apssdc';
 import ProfessionalBodies from './pages/ProfessionalBodies';
@@ -100,6 +103,9 @@ function App() {
               <Route path="/facilities/canteen" element={<Canteen />} />
               <Route path="/facilities/hostel" element={<Hostel />} />
               <Route path="/facilities/gymnasium" element={<Gymnasium />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/blogs" element={<Blogs />} />
+              <Route path="/alumni" element={<Alumni />} />
               <Route path="/departments" element={<Departments />} />
               <Route path="/departments/:id" element={<DepartmentDetail />} />
               <Route path="/faculty" element={<Faculty />} />

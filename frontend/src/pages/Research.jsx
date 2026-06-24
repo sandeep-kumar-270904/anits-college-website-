@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Cpu, 
@@ -16,6 +16,28 @@ import {
 
 const Research = () => {
   const [activeTab, setActiveTab] = useState('Profile');
+  const [publications, setPublications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'Publications') {
+      setLoading(true);
+      const fetchPublications = async () => {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        try {
+          const response = await fetch(`${API_URL}/api/research`);
+          const data = await response.json();
+          // Sort descending by year
+          setPublications(data.sort((a, b) => b.year.localeCompare(a.year)));
+        } catch (err) {
+          console.error("Failed to fetch publications:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchPublications();
+    }
+  }, [activeTab]);
 
   const tabs = [
     'Profile',
@@ -149,7 +171,10 @@ const Research = () => {
                         {discipline.icon}
                       </div>
                       <h4 className="font-bold text-sm text-gray-900 mb-2 max-w-[200px]">{discipline.name}</h4>
-                      <button className="text-xs text-gray-500 hover:text-[#3a86ff] transition-colors border-b border-transparent hover:border-[#3a86ff]">
+                      <button 
+                        onClick={() => setActiveTab('Publications')}
+                        className="text-xs text-gray-500 hover:text-[#3a86ff] transition-colors border-b border-transparent hover:border-[#3a86ff]"
+                      >
                         View Publications
                       </button>
                     </div>
@@ -157,6 +182,37 @@ const Research = () => {
                 </div>
               </div>
 
+            </div>
+          ) : activeTab === 'Publications' ? (
+            <div className="bg-white p-8 border border-gray-200 shadow-sm mx-4 md:mx-0">
+              <h2 className="text-[#2a5682] text-xl font-bold mb-6 flex items-center gap-2">
+                <BookOpen size={24} /> Publications
+              </h2>
+              {loading ? (
+                <div className="text-center py-10 text-gray-500 font-medium">Loading publications...</div>
+              ) : publications.length === 0 ? (
+                <div className="text-center py-10 text-gray-500 font-medium border border-dashed border-gray-300 rounded-xl">No publications available yet.</div>
+              ) : (
+                <div className="space-y-6">
+                  {publications.map((pub, idx) => (
+                    <div key={pub.id || idx} className="border border-gray-100 p-5 rounded-xl hover:shadow-md transition-shadow bg-gray-50">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-[#112a46] text-lg leading-tight pr-4">{pub.title}</h3>
+                        <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap">{pub.year}</span>
+                      </div>
+                      <p className="text-gray-700 text-sm mb-3"><span className="font-semibold">Authors:</span> {pub.authors}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm">
+                        <p className="text-gray-600 mb-2 sm:mb-0"><span className="font-semibold">Journal/Conference:</span> {pub.journal}</p>
+                        {pub.link && (
+                          <a href={pub.link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 font-medium underline">
+                            View Paper
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-white p-8 border border-gray-200 shadow-sm mx-4 md:mx-0">

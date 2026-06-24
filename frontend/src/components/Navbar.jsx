@@ -137,6 +137,9 @@ const Navbar = () => {
             <Link to="/library" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Library</Link>
             <Link to="/training" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Training</Link>
             <Link to="/placements" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Placements</Link>
+            <Link to="/gallery" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Gallery</Link>
+            <Link to="/blogs" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">News</Link>
+            <Link to="/alumni" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Alumni</Link>
             <Link to="/facilities" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Facilities</Link>
 
             <div className="ml-auto">
@@ -166,6 +169,9 @@ const Navbar = () => {
             <Link to="/rd" className="text-white py-2 border-b border-white/10 font-medium">R&D</Link>
             <Link to="/iqac" className="text-white py-2 border-b border-white/10 font-medium">IQAC</Link>
             <Link to="/placements" className="text-white py-2 border-b border-white/10 font-medium">Placements</Link>
+            <Link to="/gallery" className="text-white py-2 border-b border-white/10 font-medium">Gallery</Link>
+            <Link to="/blogs" className="text-white py-2 border-b border-white/10 font-medium">News</Link>
+            <Link to="/alumni" className="text-white py-2 border-b border-white/10 font-medium">Alumni</Link>
             <Link to="/facilities" className="text-white py-2 font-medium">Facilities</Link>
           </div>
         )}

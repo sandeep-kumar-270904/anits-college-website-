@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Briefcase, GraduationCap, Users, Target, BookOpen, 
@@ -51,44 +51,56 @@ const Placements = () => {
     }
   ];
 
-  const placementStats = [
-    {
-      year: "Placement Highlights 2024",
-      stats: [
-        { label: "Total Offers", value: "1065+", color: "text-blue-600" },
-        { label: "Highest Package", value: "12 LPA", color: "text-green-600" },
-        { label: "Average Package", value: "5.06 LPA", color: "text-orange-500" },
-        { label: "Total Recruiters", value: "62", color: "text-red-500" }
-      ]
-    },
-    {
-      year: "Placement Highlights 2023",
-      stats: [
-        { label: "Total Offers", value: "1143", color: "text-blue-600" },
-        { label: "Highest Package", value: "44 LPA", color: "text-green-600" },
-        { label: "Average Package", value: "5.36 LPA", color: "text-orange-500" },
-        { label: "Total Recruiters", value: "88", color: "text-red-500" }
-      ]
-    },
-    {
-      year: "Placement Highlights 2022",
-      stats: [
-        { label: "Total Offers", value: "1354", color: "text-blue-600" },
-        { label: "Highest Package", value: "38 LPA", color: "text-green-600" },
-        { label: "Average Package", value: "4.59 LPA", color: "text-orange-500" },
-        { label: "Total Recruiters", value: "92", color: "text-red-500" }
-      ]
-    },
-    {
-      year: "Placement Highlights 2021",
-      stats: [
-        { label: "Total Offers", value: "1199", color: "text-blue-600" },
-        { label: "Highest Package", value: "44 LPA", color: "text-green-600" },
-        { label: "Average Package", value: "4.02 LPA", color: "text-orange-500" },
-        { label: "Total Recruiters", value: "104", color: "text-red-500" }
-      ]
-    }
-  ];
+  const [dynamicStats, setDynamicStats] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [jobsLoading, setJobsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      try {
+        const response = await fetch(`${API_URL}/api/placements`);
+        const data = await response.json();
+        
+        // Sort descending by year
+        const sorted = data.sort((a, b) => b.year.localeCompare(a.year));
+        
+        // Format for UI
+        const formatted = sorted.map(item => ({
+          year: item.year,
+          stats: [
+            { label: "Total Offers", value: item.total_offers, color: "text-blue-600" },
+            { label: "Highest Package", value: item.highest_package, color: "text-green-600" },
+            { label: "Average Package", value: item.average_package, color: "text-orange-500" },
+            { label: "Total Recruiters", value: item.total_recruiters, color: "text-red-500" }
+          ]
+        }));
+        
+        setDynamicStats(formatted);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch placement stats:", err);
+        setLoading(false);
+      }
+    };
+    
+    const fetchJobs = async () => {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      try {
+        const response = await fetch(`${API_URL}/api/jobs`);
+        const data = await response.json();
+        setJobs(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+        setJobsLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch jobs:", err);
+        setJobsLoading(false);
+      }
+    };
+    
+    fetchStats();
+    fetchJobs();
+  }, []);
 
   // Placeholder names for the recruiter grid to show boxes
   const recruiters = Array(35).fill("Company Logo");
@@ -206,26 +218,88 @@ const Placements = () => {
               <p className="text-gray-500 max-w-2xl mx-auto">Our track record of successful placements</p>
             </div>
             <div className="space-y-6">
-              {placementStats.map((yearStat, index) => (
-                <div key={index} className="bg-[#112a46] rounded-2xl overflow-hidden shadow-md">
-                  <div className="bg-[#1f3a5f] px-6 py-3 border-b border-[#2a4d7a]">
-                    <h3 className="text-white font-bold tracking-wide">{yearStat.year}</h3>
+              {loading ? (
+                <div className="text-center py-10 text-gray-500 font-bold">Loading Statistics...</div>
+              ) : dynamicStats.length === 0 ? (
+                <div className="text-center py-10 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">No statistics available yet.</div>
+              ) : (
+                dynamicStats.map((yearStat, index) => (
+                  <div key={index} className="bg-[#112a46] rounded-2xl overflow-hidden shadow-md">
+                    <div className="bg-[#1f3a5f] px-6 py-3 border-b border-[#2a4d7a]">
+                      <h3 className="text-white font-bold tracking-wide">{yearStat.year}</h3>
+                    </div>
+                    <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {yearStat.stats.map((stat, statIdx) => (
+                        <div key={statIdx} className="bg-white rounded-xl p-4 text-center hover:scale-105 transition-transform">
+                          <div className={`text-2xl font-black ${stat.color} mb-1`}>{stat.value}</div>
+                          <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {yearStat.stats.map((stat, statIdx) => (
-                      <div key={statIdx} className="bg-white rounded-xl p-4 text-center">
-                        <div className={`text-2xl font-black ${stat.color} mb-1`}>{stat.value}</div>
-                        <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">{stat.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <div className="mt-8 text-center">
               <button className="bg-[#112a46] hover:bg-[#1f3a5f] text-white font-bold py-3 px-8 rounded-full transition-colors text-sm tracking-wider shadow-md">
                 VIEW DETAILED REPORT
               </button>
+            </div>
+          </section>
+
+          {/* Job Board / Active Opportunities */}
+          <section>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-[#112a46] mb-3">Active Opportunities</h2>
+              <p className="text-gray-500 max-w-2xl mx-auto">Latest job and internship postings for our students</p>
+            </div>
+            
+            <div className="space-y-4">
+              {jobsLoading ? (
+                <div className="text-center py-10 text-gray-500 font-bold">Loading Opportunities...</div>
+              ) : jobs.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 border-dashed">
+                  <Briefcase className="mx-auto text-gray-300 mb-4" size={48} />
+                  <p className="text-gray-500 font-medium text-lg">No active opportunities posted right now.</p>
+                </div>
+              ) : (
+                jobs.map((job) => (
+                  <div key={job.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col md:flex-row justify-between gap-6">
+                    <div className="flex gap-4">
+                      <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Building size={32} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">{job.title}</h3>
+                        <div className="text-[#f39c12] font-bold text-sm mb-3 uppercase tracking-wider">{job.company}</div>
+                        
+                        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-800">Role:</span> {job.role}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-800">Salary:</span> {job.salary}
+                          </div>
+                          <div className="flex items-center gap-2 text-red-600">
+                            <span className="font-bold">Deadline:</span> {job.deadline}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center md:justify-end">
+                      {job.link ? (
+                        <a href={job.link} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-sm">
+                          Apply Now
+                        </a>
+                      ) : (
+                        <div className="w-full md:w-auto text-center bg-gray-100 text-gray-500 font-bold py-3 px-8 rounded-xl">
+                          Check Emails
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 

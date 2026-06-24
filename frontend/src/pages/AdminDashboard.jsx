@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell } from 'lucide-react';
+import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   
@@ -37,6 +38,53 @@ const AdminDashboard = () => {
   const [eventDescription, setEventDescription] = useState('');
   const [eventUploadStatus, setEventUploadStatus] = useState('');
 
+  // Faculty state
+  const [facultyName, setFacultyName] = useState('');
+  const [facultyDept, setFacultyDept] = useState('Computer Science Engineering');
+  const [facultyDesignation, setFacultyDesignation] = useState('');
+  const [facultyQualification, setFacultyQualification] = useState('');
+  const [facultyEmail, setFacultyEmail] = useState('');
+  const [facultyUploadStatus, setFacultyUploadStatus] = useState('');
+
+  // Placements state
+  const [placementYear, setPlacementYear] = useState('Placement Highlights 2025');
+  const [placementTotalOffers, setPlacementTotalOffers] = useState('');
+  const [placementHighestPackage, setPlacementHighestPackage] = useState('');
+  const [placementAveragePackage, setPlacementAveragePackage] = useState('');
+  const [placementTotalRecruiters, setPlacementTotalRecruiters] = useState('');
+  const [placementUploadStatus, setPlacementUploadStatus] = useState('');
+
+  // Research state
+  const [researchTitle, setResearchTitle] = useState('');
+  const [researchAuthors, setResearchAuthors] = useState('');
+  const [researchJournal, setResearchJournal] = useState('');
+  const [researchYear, setResearchYear] = useState('');
+  const [researchLink, setResearchLink] = useState('');
+  const [researchDept, setResearchDept] = useState('General');
+  const [researchUploadStatus, setResearchUploadStatus] = useState('');
+
+  // Gallery state
+  const [galleryFile, setGalleryFile] = useState(null);
+  const [galleryTitle, setGalleryTitle] = useState('');
+  const [galleryCategory, setGalleryCategory] = useState('Campus');
+  const [galleryUploadStatus, setGalleryUploadStatus] = useState('');
+
+  // Blog state
+  const [blogTitle, setBlogTitle] = useState('');
+  const [blogAuthor, setBlogAuthor] = useState('ANITS Admin');
+  const [blogContent, setBlogContent] = useState('');
+  const [blogFile, setBlogFile] = useState(null);
+  const [blogUploadStatus, setBlogUploadStatus] = useState('');
+
+  // Jobs state
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobCompany, setJobCompany] = useState('');
+  const [jobRole, setJobRole] = useState('');
+  const [jobSalary, setJobSalary] = useState('');
+  const [jobDeadline, setJobDeadline] = useState('');
+  const [jobLink, setJobLink] = useState('');
+  const [jobUploadStatus, setJobUploadStatus] = useState('');
+
   const policiesList = [
     "Research and Development Policy", "Innovation and Entrepreneurship Policy", "Institutional Ethics Policy",
     "IPR Policy", "IT Policy", "Maintenance Policy", "Placement Policy", "Non-Teaching Staff Welfare Policy",
@@ -60,6 +108,7 @@ const AdminDashboard = () => {
       return;
     }
     fetchLogs(token);
+    fetchEnquiries(token);
   }, [navigate]);
 
   const fetchLogs = async (token) => {
@@ -78,6 +127,21 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       console.error('Failed to fetch logs', err);
+    }
+  };
+
+  const fetchEnquiries = async (token) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const response = await fetch(`${API_URL}/api/enquiries`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEnquiries(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch enquiries', err);
     }
   };
 
@@ -305,6 +369,263 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       setEventUploadStatus('Upload error');
+    }
+  };
+
+  const handleFacultyUpload = async (e) => {
+    e.preventDefault();
+    if (!facultyName || !facultyDept || !facultyDesignation) {
+      setFacultyUploadStatus('Please fill in Name, Department and Designation.');
+      return;
+    }
+    
+    setFacultyUploadStatus('Adding faculty...');
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/faculty`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: facultyName,
+          department: facultyDept,
+          designation: facultyDesignation,
+          qualification: facultyQualification,
+          email: facultyEmail
+        })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setFacultyUploadStatus('Upload successful! Faculty added to Directory.');
+        setFacultyName('');
+        setFacultyDesignation('');
+        setFacultyQualification('');
+        setFacultyEmail('');
+      } else {
+        setFacultyUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setFacultyUploadStatus('Upload error');
+    }
+  };
+
+  const handlePlacementUpload = async (e) => {
+    e.preventDefault();
+    if (!placementYear || !placementTotalOffers || !placementHighestPackage || !placementAveragePackage || !placementTotalRecruiters) {
+      setPlacementUploadStatus('Please fill in all placement fields.');
+      return;
+    }
+    
+    setPlacementUploadStatus('Adding placement stats...');
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/placements`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          year: placementYear,
+          total_offers: placementTotalOffers,
+          highest_package: placementHighestPackage,
+          average_package: placementAveragePackage,
+          total_recruiters: placementTotalRecruiters
+        })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setPlacementUploadStatus('Upload successful! Placement stats added.');
+        setPlacementTotalOffers('');
+        setPlacementHighestPackage('');
+        setPlacementAveragePackage('');
+        setPlacementTotalRecruiters('');
+      } else {
+        setPlacementUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setPlacementUploadStatus('Upload error');
+    }
+  };
+
+  const handleResearchUpload = async (e) => {
+    e.preventDefault();
+    if (!researchTitle || !researchAuthors || !researchJournal || !researchYear) {
+      setResearchUploadStatus('Please fill in required fields (Title, Authors, Journal, Year).');
+      return;
+    }
+    
+    setResearchUploadStatus('Adding research publication...');
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/research`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: researchTitle,
+          authors: researchAuthors,
+          journal: researchJournal,
+          year: researchYear,
+          link: researchLink,
+          department: researchDept
+        })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setResearchUploadStatus('Upload successful! Publication added.');
+        setResearchTitle('');
+        setResearchAuthors('');
+        setResearchJournal('');
+        setResearchYear('');
+        setResearchLink('');
+      } else {
+        setResearchUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setResearchUploadStatus('Upload error');
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    e.preventDefault();
+    if (!galleryFile || !galleryTitle) {
+      setGalleryUploadStatus('Please select an image and provide a title.');
+      return;
+    }
+    
+    setGalleryUploadStatus('Uploading image...');
+    
+    const formData = new FormData();
+    formData.append('file', galleryFile);
+    formData.append('title', galleryTitle);
+    formData.append('category', galleryCategory);
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/upload_gallery`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setGalleryUploadStatus('Upload successful! Image added to Gallery.');
+        setGalleryFile(null);
+        setGalleryTitle('');
+        // Reset file input UI manually if needed, or controlled via state
+        document.getElementById('galleryFileInput').value = '';
+      } else {
+        setGalleryUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setGalleryUploadStatus('Upload error');
+    }
+  };
+
+  const handleBlogUpload = async (e) => {
+    e.preventDefault();
+    if (!blogTitle || !blogContent) {
+      setBlogUploadStatus('Please provide a title and content.');
+      return;
+    }
+    
+    setBlogUploadStatus('Publishing post...');
+    
+    const formData = new FormData();
+    formData.append('title', blogTitle);
+    formData.append('author', blogAuthor);
+    formData.append('content', blogContent);
+    if (blogFile) {
+      formData.append('file', blogFile);
+    }
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/upload_blog`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setBlogUploadStatus('Post published successfully!');
+        setBlogTitle('');
+        setBlogAuthor('ANITS Admin');
+        setBlogContent('');
+        setBlogFile(null);
+        if (document.getElementById('blogFileInput')) {
+          document.getElementById('blogFileInput').value = '';
+        }
+      } else {
+        setBlogUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setBlogUploadStatus('Upload error');
+    }
+  };
+
+  const handleJobUpload = async (e) => {
+    e.preventDefault();
+    if (!jobTitle || !jobCompany || !jobRole) {
+      setJobUploadStatus('Please provide Title, Company, and Role.');
+      return;
+    }
+    
+    setJobUploadStatus('Posting job...');
+    
+    const payload = {
+      title: jobTitle,
+      company: jobCompany,
+      role: jobRole,
+      salary: jobSalary,
+      deadline: jobDeadline,
+      link: jobLink
+    };
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/jobs`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setJobUploadStatus('Job posted successfully!');
+        setJobTitle('');
+        setJobCompany('');
+        setJobRole('');
+        setJobSalary('');
+        setJobDeadline('');
+        setJobLink('');
+      } else {
+        setJobUploadStatus(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      setJobUploadStatus('Upload error');
     }
   };
 
@@ -669,6 +990,514 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Faculty Directory Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <Users className="text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Faculty Directory</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Add faculty profiles here. They will appear on the public Faculty Directory.</p>
+            
+            <form onSubmit={handleFacultyUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Faculty Name <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={facultyName}
+                    onChange={(e) => setFacultyName(e.target.value)}
+                    placeholder="e.g. Dr. John Doe"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Department <span className="text-red-500">*</span></label>
+                  <select 
+                    value={facultyDept}
+                    onChange={(e) => setFacultyDept(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  >
+                    {deptsList.map((dept, idx) => (
+                      <option key={idx} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Designation <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={facultyDesignation}
+                    onChange={(e) => setFacultyDesignation(e.target.value)}
+                    placeholder="e.g. Professor / Asst. Professor"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Qualifications</label>
+                  <input 
+                    type="text" 
+                    value={facultyQualification}
+                    onChange={(e) => setFacultyQualification(e.target.value)}
+                    placeholder="e.g. Ph.D, M.Tech"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                  <input 
+                    type="email" 
+                    value={facultyEmail}
+                    onChange={(e) => setFacultyEmail(e.target.value)}
+                    placeholder="e.g. professor@anits.edu.in"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Add to Directory
+                </button>
+              </div>
+            </form>
+
+            {facultyUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${facultyUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {facultyUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {facultyUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Placements Data Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <TrendingUp className="text-green-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Placements Statistics</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Add yearly placement highlights here. They will automatically appear on the Placements page.</p>
+            
+            <form onSubmit={handlePlacementUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Academic Year <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={placementYear}
+                    onChange={(e) => setPlacementYear(e.target.value)}
+                    placeholder="e.g. Placement Highlights 2025"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Total Offers <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={placementTotalOffers}
+                    onChange={(e) => setPlacementTotalOffers(e.target.value)}
+                    placeholder="e.g. 1065+"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Highest Package <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={placementHighestPackage}
+                    onChange={(e) => setPlacementHighestPackage(e.target.value)}
+                    placeholder="e.g. 12 LPA"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Average Package <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={placementAveragePackage}
+                    onChange={(e) => setPlacementAveragePackage(e.target.value)}
+                    placeholder="e.g. 5.06 LPA"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Total Recruiters <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={placementTotalRecruiters}
+                    onChange={(e) => setPlacementTotalRecruiters(e.target.value)}
+                    placeholder="e.g. 62"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Save Statistics
+                </button>
+              </div>
+            </form>
+
+            {placementUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${placementUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {placementUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {placementUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Research & Development Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <Microscope className="text-indigo-500" />
+            <h2 className="text-xl font-bold text-gray-900">Manage R&D Publications</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Add research publications here. They will automatically appear on the R&D page.</p>
+            
+            <form onSubmit={handleResearchUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Paper Title <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={researchTitle}
+                    onChange={(e) => setResearchTitle(e.target.value)}
+                    placeholder="e.g. A Novel Approach to AI..."
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Authors <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={researchAuthors}
+                    onChange={(e) => setResearchAuthors(e.target.value)}
+                    placeholder="e.g. John Doe, Jane Smith"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Journal/Conference <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={researchJournal}
+                    onChange={(e) => setResearchJournal(e.target.value)}
+                    placeholder="e.g. IEEE Transactions"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Year <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={researchYear}
+                    onChange={(e) => setResearchYear(e.target.value)}
+                    placeholder="e.g. 2024"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Department</label>
+                  <select 
+                    value={researchDept}
+                    onChange={(e) => setResearchDept(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="General">General / Cross-Disciplinary</option>
+                    {deptsList.map((dept, idx) => (
+                      <option key={idx} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Link/DOI (Optional)</label>
+                  <input 
+                    type="text" 
+                    value={researchLink}
+                    onChange={(e) => setResearchLink(e.target.value)}
+                    placeholder="e.g. https://doi.org/..."
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Add Publication
+                </button>
+              </div>
+            </form>
+
+            {researchUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${researchUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {researchUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {researchUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Gallery Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <ImageIcon className="text-pink-500" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Photo Gallery</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Upload photos to the public gallery.</p>
+            
+            <form onSubmit={handleGalleryUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Image Title <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={galleryTitle}
+                    onChange={(e) => setGalleryTitle(e.target.value)}
+                    placeholder="e.g. Annual Sports Day 2024"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                  <select 
+                    value={galleryCategory}
+                    onChange={(e) => setGalleryCategory(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="Campus">Campus</option>
+                    <option value="Events">Events & Fests</option>
+                    <option value="Workshops">Workshops & Seminars</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Hostel">Hostel & Facilities</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Upload Image <span className="text-red-500">*</span></label>
+                  <div className="relative group cursor-pointer border-2 border-dashed border-gray-300 hover:border-pink-500 rounded-xl bg-gray-50 hover:bg-pink-50 transition-colors">
+                    <input 
+                      type="file" 
+                      id="galleryFileInput"
+                      onChange={(e) => setGalleryFile(e.target.files[0])}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                    />
+                    <div className="p-8 text-center flex flex-col items-center">
+                      <ImageIcon className="text-gray-400 group-hover:text-pink-500 mb-3" size={32} />
+                      <p className="text-gray-600 font-medium group-hover:text-pink-600 transition-colors">
+                        {galleryFile ? galleryFile.name : "Click or drag image file here"}
+                      </p>
+                      {!galleryFile && <p className="text-sm text-gray-400 mt-2">Supports JPG, PNG, WEBP</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Upload Image
+                </button>
+              </div>
+            </form>
+
+            {galleryUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${galleryUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {galleryUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {galleryUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Blog/News Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <FileText className="text-indigo-500" />
+            <h2 className="text-xl font-bold text-gray-900">Manage College News & Blogs</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Publish news, announcements, or student blog posts.</p>
+            
+            <form onSubmit={handleBlogUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Post Title <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={blogTitle}
+                    onChange={(e) => setBlogTitle(e.target.value)}
+                    placeholder="e.g. ANITS Hackathon 2024 Winners"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Author</label>
+                  <input 
+                    type="text" 
+                    value={blogAuthor}
+                    onChange={(e) => setBlogAuthor(e.target.value)}
+                    placeholder="e.g. CSE Department"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Content <span className="text-red-500">*</span></label>
+                  <textarea 
+                    value={blogContent}
+                    onChange={(e) => setBlogContent(e.target.value)}
+                    placeholder="Write the full news article or blog post content here..."
+                    rows="6"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none"
+                  ></textarea>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Cover Image (Optional)</label>
+                  <div className="relative group cursor-pointer border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl bg-gray-50 hover:bg-indigo-50 transition-colors">
+                    <input 
+                      type="file" 
+                      id="blogFileInput"
+                      onChange={(e) => setBlogFile(e.target.files[0])}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                    />
+                    <div className="p-8 text-center flex flex-col items-center">
+                      <ImageIcon className="text-gray-400 group-hover:text-indigo-500 mb-3" size={32} />
+                      <p className="text-gray-600 font-medium group-hover:text-indigo-600 transition-colors">
+                        {blogFile ? blogFile.name : "Click or drag a cover image here"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Publish Post
+                </button>
+              </div>
+            </form>
+
+            {blogUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${blogUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {blogUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {blogUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Jobs & Opportunities Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <Briefcase className="text-teal-500" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Job Board</h2>
+          </div>
+          <div className="p-8">
+            <p className="text-gray-600 mb-6 font-medium">Post new internships or full-time opportunities for students.</p>
+            
+            <form onSubmit={handleJobUpload} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Job Title / Program <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    placeholder="e.g. Summer Internship 2024"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Company <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={jobCompany}
+                    onChange={(e) => setJobCompany(e.target.value)}
+                    placeholder="e.g. Google, Amazon, TCS"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Role/Position <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={jobRole}
+                    onChange={(e) => setJobRole(e.target.value)}
+                    placeholder="e.g. SDE Intern"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Salary/Stipend</label>
+                  <input 
+                    type="text" 
+                    value={jobSalary}
+                    onChange={(e) => setJobSalary(e.target.value)}
+                    placeholder="e.g. 10 LPA / 50k per month"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Application Deadline</label>
+                  <input 
+                    type="text" 
+                    value={jobDeadline}
+                    onChange={(e) => setJobDeadline(e.target.value)}
+                    placeholder="e.g. 25th Oct 2024"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Application Link</label>
+                  <input 
+                    type="text" 
+                    value={jobLink}
+                    onChange={(e) => setJobLink(e.target.value)}
+                    placeholder="e.g. https://careers.google.com/..."
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-2">
+                <button 
+                  type="submit" 
+                  className="whitespace-nowrap px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-colors shadow-md"
+                >
+                  Post Job
+                </button>
+              </div>
+            </form>
+
+            {jobUploadStatus && (
+              <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-medium animate-fade-in ${jobUploadStatus.includes('successful') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {jobUploadStatus.includes('successful') ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                {jobUploadStatus}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Logs Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
@@ -703,6 +1532,53 @@ const AdminDashboard = () => {
                   <tr>
                     <td colSpan="4" className="p-12 text-center text-gray-500 font-medium">
                       No chat logs recorded yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Enquiries Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="border-b border-gray-100 p-6 bg-gray-50/50 flex items-center gap-3">
+            <Mail className="text-cyan-600" />
+            <h2 className="text-xl font-bold text-gray-900">Contact & Admissions Enquiries</h2>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider font-bold border-b border-gray-200">
+                  <th className="p-4 pl-8">Date</th>
+                  <th className="p-4">Name</th>
+                  <th className="p-4">Contact</th>
+                  <th className="p-4">Subject</th>
+                  <th className="p-4 pr-8">Message</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {enquiries.map((eq) => (
+                  <tr key={eq.id || eq._id} className="hover:bg-gray-50 transition-colors text-sm">
+                    <td className="p-4 pl-8 text-gray-500 font-medium whitespace-nowrap">
+                      {new Date(eq.timestamp).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 text-gray-900 font-bold">{eq.name}</td>
+                    <td className="p-4 text-gray-600">
+                      <div>{eq.email}</div>
+                      {eq.phone && <div className="text-xs text-gray-400 mt-1">{eq.phone}</div>}
+                    </td>
+                    <td className="p-4 text-gray-800 font-medium">{eq.subject || '-'}</td>
+                    <td className="p-4 pr-8 text-gray-600 max-w-md truncate" title={eq.message}>
+                      {eq.message}
+                    </td>
+                  </tr>
+                ))}
+                {enquiries.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="p-12 text-center text-gray-500 font-medium">
+                      No enquiries received yet.
                     </td>
                   </tr>
                 )}

@@ -63,11 +63,27 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
     db = mongo_client['anits_db']
     chat_logs = db['chat_logs']
+    enquiries_collection = db['enquiries']
     # Ensure indexes
     chat_logs.create_index([("language", 1), ("timestamp", -1)])
+    enquiries_collection.create_index([("timestamp", -1)])
 except Exception as e:
     print("MongoDB connection error:", e)
     print("App will run without database logging.")
+    enquiries_collection = None
+
+# Enquiries Data Handling (Local JSON Fallback)
+enquiries_file_path = "../data/enquiries.json"
+def load_enquiries():
+    if os.path.exists(enquiries_file_path):
+        with open(enquiries_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_enquiries(data):
+    os.makedirs(os.path.dirname(enquiries_file_path), exist_ok=True)
+    with open(enquiries_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
 
 # Syllabus Data Handling (Local JSON Fallback for reliability)
 syllabus_file_path = "../data/syllabus.json"
@@ -119,6 +135,97 @@ def load_events():
 def save_events(data):
     os.makedirs(os.path.dirname(events_file_path), exist_ok=True)
     with open(events_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Faculty Data Handling
+faculty_file_path = "../data/faculty.json"
+def load_faculty():
+    if os.path.exists(faculty_file_path):
+        with open(faculty_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_faculty(data):
+    os.makedirs(os.path.dirname(faculty_file_path), exist_ok=True)
+    with open(faculty_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Placements Data Handling
+placements_file_path = "../data/placements.json"
+def load_placements():
+    if os.path.exists(placements_file_path):
+        with open(placements_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_placements(data):
+    os.makedirs(os.path.dirname(placements_file_path), exist_ok=True)
+    with open(placements_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Research Data Handling
+research_file_path = "../data/research.json"
+def load_research():
+    if os.path.exists(research_file_path):
+        with open(research_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_research(data):
+    os.makedirs(os.path.dirname(research_file_path), exist_ok=True)
+    with open(research_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Gallery Data Handling
+gallery_file_path = "../data/gallery.json"
+def load_gallery():
+    if os.path.exists(gallery_file_path):
+        with open(gallery_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_gallery(data):
+    os.makedirs(os.path.dirname(gallery_file_path), exist_ok=True)
+    with open(gallery_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Blogs Data Handling
+blogs_file_path = "../data/blogs.json"
+def load_blogs():
+    if os.path.exists(blogs_file_path):
+        with open(blogs_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_blogs(data):
+    os.makedirs(os.path.dirname(blogs_file_path), exist_ok=True)
+    with open(blogs_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Jobs Data Handling
+jobs_file_path = "../data/jobs.json"
+def load_jobs():
+    if os.path.exists(jobs_file_path):
+        with open(jobs_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_jobs(data):
+    os.makedirs(os.path.dirname(jobs_file_path), exist_ok=True)
+    with open(jobs_file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+# Alumni Data Handling
+alumni_file_path = "../data/alumni.json"
+def load_alumni():
+    if os.path.exists(alumni_file_path):
+        with open(alumni_file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_alumni(data):
+    os.makedirs(os.path.dirname(alumni_file_path), exist_ok=True)
+    with open(alumni_file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
 # PDF Loader
@@ -445,6 +552,405 @@ def delete_event(event_id):
         
     save_events(filtered_data)
     return jsonify({"message": "Event deleted successfully"})
+
+@app.route("/api/faculty", methods=["GET"])
+def get_faculty():
+    data = load_faculty()
+    return jsonify(data)
+
+@app.route("/api/faculty", methods=["POST"])
+@token_required
+def add_faculty():
+    data = request.get_json()
+    name = data.get("name")
+    department = data.get("department")
+    designation = data.get("designation")
+    qualification = data.get("qualification", "")
+    email = data.get("email", "")
+    
+    if not name or not department or not designation:
+        return jsonify({"error": "Name, department, and designation are required"}), 400
+        
+    faculty_data = load_faculty()
+    new_faculty = {
+        "id": str(uuid.uuid4())[:8],
+        "name": name,
+        "department": department,
+        "designation": designation,
+        "qualification": qualification,
+        "email": email,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    faculty_data.append(new_faculty)
+    save_faculty(faculty_data)
+    
+    return jsonify({"message": "Faculty member added successfully", "faculty": new_faculty})
+
+@app.route("/api/faculty/<faculty_id>", methods=["DELETE"])
+@token_required
+def delete_faculty(faculty_id):
+    faculty_data = load_faculty()
+    filtered_data = [f for f in faculty_data if f.get("id") != faculty_id]
+    
+    if len(filtered_data) == len(faculty_data):
+        return jsonify({"error": "Faculty not found"}), 404
+        
+    save_faculty(filtered_data)
+    return jsonify({"message": "Faculty deleted successfully"})
+
+@app.route("/api/placements", methods=["GET"])
+def get_placements():
+    data = load_placements()
+    return jsonify(data)
+
+@app.route("/api/placements", methods=["POST"])
+@token_required
+def add_placement():
+    data = request.get_json()
+    year = data.get("year")
+    total_offers = data.get("total_offers")
+    highest_package = data.get("highest_package")
+    average_package = data.get("average_package")
+    total_recruiters = data.get("total_recruiters")
+    
+    if not year or not total_offers or not highest_package or not average_package or not total_recruiters:
+        return jsonify({"error": "All placement fields are required"}), 400
+        
+    placements_data = load_placements()
+    new_placement = {
+        "id": str(uuid.uuid4())[:8],
+        "year": year,
+        "total_offers": total_offers,
+        "highest_package": highest_package,
+        "average_package": average_package,
+        "total_recruiters": total_recruiters,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    placements_data.append(new_placement)
+    save_placements(placements_data)
+    
+    return jsonify({"message": "Placement stats added successfully", "placement": new_placement})
+
+@app.route("/api/placements/<placement_id>", methods=["DELETE"])
+@token_required
+def delete_placement(placement_id):
+    placements_data = load_placements()
+    filtered_data = [p for p in placements_data if p.get("id") != placement_id]
+    
+    if len(filtered_data) == len(placements_data):
+        return jsonify({"error": "Placement record not found"}), 404
+        
+    save_placements(filtered_data)
+    return jsonify({"message": "Placement record deleted successfully"})
+
+@app.route("/api/research", methods=["GET"])
+def get_research():
+    data = load_research()
+    return jsonify(data)
+
+@app.route("/api/research", methods=["POST"])
+@token_required
+def add_research():
+    data = request.get_json()
+    title = data.get("title")
+    authors = data.get("authors")
+    journal = data.get("journal")
+    year = data.get("year")
+    link = data.get("link", "")
+    department = data.get("department", "General")
+    
+    if not title or not authors or not journal or not year:
+        return jsonify({"error": "Title, authors, journal, and year are required"}), 400
+        
+    research_data = load_research()
+    new_research = {
+        "id": str(uuid.uuid4())[:8],
+        "title": title,
+        "authors": authors,
+        "journal": journal,
+        "year": year,
+        "link": link,
+        "department": department,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    research_data.append(new_research)
+    save_research(research_data)
+    
+    return jsonify({"message": "Research publication added successfully", "research": new_research})
+
+@app.route("/api/research/<research_id>", methods=["DELETE"])
+@token_required
+def delete_research(research_id):
+    research_data = load_research()
+    filtered_data = [r for r in research_data if r.get("id") != research_id]
+    
+    if len(filtered_data) == len(research_data):
+        return jsonify({"error": "Research record not found"}), 404
+        
+    save_research(filtered_data)
+    return jsonify({"message": "Research record deleted successfully"})
+
+@app.route("/api/upload_gallery", methods=["POST"])
+@token_required
+def upload_gallery():
+    title = request.form.get("title")
+    category = request.form.get("category", "General")
+    
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+        
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+        
+    allowed_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    
+    if ext in allowed_extensions:
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"gallery_{unique_id}_{secure_filename(file.filename)}"
+        
+        gallery_dir = "../data/gallery_files"
+        os.makedirs(gallery_dir, exist_ok=True)
+        file.save(os.path.join(gallery_dir, filename))
+        
+        gallery_data = load_gallery()
+        new_item = {
+            "id": unique_id,
+            "title": title,
+            "category": category,
+            "filename": filename,
+            "upload_date": datetime.utcnow().isoformat()
+        }
+        gallery_data.append(new_item)
+        save_gallery(gallery_data)
+        
+        return jsonify({"message": "Successfully uploaded image", "item": new_item})
+        
+    return jsonify({"error": "Only image files are allowed"}), 400
+
+@app.route("/api/gallery", methods=["GET"])
+def get_gallery():
+    data = load_gallery()
+    return jsonify(data)
+
+@app.route("/api/gallery_file/<filename>")
+def serve_gallery_file(filename):
+    gallery_dir = "../data/gallery_files"
+    return send_from_directory(gallery_dir, filename)
+
+@app.route("/api/gallery/<gallery_id>", methods=["DELETE"])
+@token_required
+def delete_gallery(gallery_id):
+    gallery_data = load_gallery()
+    filtered_data = [g for g in gallery_data if g.get("id") != gallery_id]
+    
+    if len(filtered_data) == len(gallery_data):
+        return jsonify({"error": "Gallery item not found"}), 404
+        
+    # We could also delete the file here to save space, but keeping it simple for now
+    save_gallery(filtered_data)
+    return jsonify({"message": "Gallery item deleted successfully"})
+
+@app.route("/api/upload_blog", methods=["POST"])
+@token_required
+def upload_blog():
+    title = request.form.get("title")
+    author = request.form.get("author", "ANITS")
+    content = request.form.get("content")
+    
+    if not title or not content:
+        return jsonify({"error": "Title and content are required"}), 400
+        
+    filename = None
+    if "file" in request.files and request.files["file"].filename != "":
+        file = request.files["file"]
+        allowed_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext in allowed_extensions:
+            unique_id = str(uuid.uuid4())[:8]
+            filename = f"blog_{unique_id}_{secure_filename(file.filename)}"
+            blog_img_dir = "../data/blog_images"
+            os.makedirs(blog_img_dir, exist_ok=True)
+            file.save(os.path.join(blog_img_dir, filename))
+    
+    blogs_data = load_blogs()
+    new_blog = {
+        "id": str(uuid.uuid4())[:8],
+        "title": title,
+        "author": author,
+        "content": content,
+        "image": filename,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    blogs_data.append(new_blog)
+    save_blogs(blogs_data)
+    
+    return jsonify({"message": "Successfully published blog post", "blog": new_blog})
+
+@app.route("/api/blogs", methods=["GET"])
+def get_blogs():
+    data = load_blogs()
+    return jsonify(data)
+
+@app.route("/api/blog_image/<filename>")
+def serve_blog_image(filename):
+    blog_img_dir = "../data/blog_images"
+    return send_from_directory(blog_img_dir, filename)
+
+@app.route("/api/blogs/<blog_id>", methods=["DELETE"])
+@token_required
+def delete_blog(blog_id):
+    blogs_data = load_blogs()
+    filtered_data = [b for b in blogs_data if b.get("id") != blog_id]
+    
+    if len(filtered_data) == len(blogs_data):
+        return jsonify({"error": "Blog post not found"}), 404
+        
+    save_blogs(filtered_data)
+    return jsonify({"message": "Blog post deleted successfully"})
+
+@app.route("/api/jobs", methods=["GET"])
+def get_jobs():
+    data = load_jobs()
+    return jsonify(data)
+
+@app.route("/api/jobs", methods=["POST"])
+@token_required
+def add_job():
+    data = request.get_json()
+    title = data.get("title")
+    company = data.get("company")
+    role = data.get("role")
+    salary = data.get("salary", "Not Disclosed")
+    deadline = data.get("deadline", "Rolling")
+    link = data.get("link", "")
+    
+    if not title or not company or not role:
+        return jsonify({"error": "Title, company, and role are required"}), 400
+        
+    jobs_data = load_jobs()
+    new_job = {
+        "id": str(uuid.uuid4())[:8],
+        "title": title,
+        "company": company,
+        "role": role,
+        "salary": salary,
+        "deadline": deadline,
+        "link": link,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    jobs_data.append(new_job)
+    save_jobs(jobs_data)
+    
+    return jsonify({"message": "Successfully posted job", "job": new_job})
+
+@app.route("/api/jobs/<job_id>", methods=["DELETE"])
+@token_required
+def delete_job(job_id):
+    jobs_data = load_jobs()
+    filtered_data = [j for j in jobs_data if j.get("id") != job_id]
+    
+    if len(filtered_data) == len(jobs_data):
+        return jsonify({"error": "Job post not found"}), 404
+        
+    save_jobs(filtered_data)
+    return jsonify({"message": "Job post deleted successfully"})
+
+@app.route("/api/alumni", methods=["GET"])
+def get_alumni():
+    data = load_alumni()
+    return jsonify(data)
+
+@app.route("/api/alumni", methods=["POST"])
+@limiter.limit("5 per minute")
+def register_alumni():
+    data = request.get_json()
+    name = data.get("name")
+    batch = data.get("batch")
+    department = data.get("department")
+    company = data.get("company")
+    role = data.get("role")
+    linkedin = data.get("linkedin")
+    
+    if not name or not batch or not department:
+        return jsonify({"error": "Name, batch, and department are required"}), 400
+        
+    alumni_data = load_alumni()
+    new_alumni = {
+        "id": str(uuid.uuid4())[:8],
+        "name": name,
+        "batch": batch,
+        "department": department,
+        "company": company or "",
+        "role": role or "",
+        "linkedin": linkedin or "",
+        "registered_at": datetime.utcnow().isoformat()
+    }
+    alumni_data.append(new_alumni)
+    save_alumni(alumni_data)
+    
+    return jsonify({"message": "Alumni registered successfully", "alumni": new_alumni})
+
+@app.route("/api/contact", methods=["POST"])
+@limiter.limit("5 per minute")
+def submit_contact():
+    data = request.get_json()
+    name = data.get("name")
+    email = data.get("email")
+    phone = data.get("phone", "")
+    subject = data.get("subject", "")
+    message = data.get("message")
+    
+    if not name or not email or not message:
+        return jsonify({"error": "Name, email, and message are required"}), 400
+        
+    enquiry = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "subject": subject,
+        "message": message,
+        "timestamp": datetime.utcnow().isoformat(),
+        "status": "unread"
+    }
+    
+    # Save to MongoDB if available, else JSON fallback
+    if enquiries_collection is not None:
+        try:
+            enquiries_collection.insert_one(enquiry)
+        except Exception as e:
+            print("Failed to save to MongoDB, falling back to JSON", e)
+            local_data = load_enquiries()
+            local_data.append(enquiry)
+            save_enquiries(local_data)
+    else:
+        local_data = load_enquiries()
+        local_data.append(enquiry)
+        save_enquiries(local_data)
+        
+    return jsonify({"message": "Enquiry submitted successfully", "id": enquiry["id"]})
+
+@app.route("/api/enquiries", methods=["GET"])
+@token_required
+def get_enquiries():
+    if enquiries_collection is not None:
+        try:
+            enquiries = list(enquiries_collection.find().sort("timestamp", -1).limit(200))
+            for eq in enquiries:
+                eq["_id"] = str(eq["_id"])
+            return jsonify(enquiries)
+        except Exception as e:
+            pass
+            
+    # Fallback to JSON
+    data = load_enquiries()
+    # Sort descending
+    data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return jsonify(data)
 
 MAX_MESSAGE_LENGTH = 5000
 
