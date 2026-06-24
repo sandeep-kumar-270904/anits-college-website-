@@ -24,20 +24,20 @@ const ProfessionalBodies = () => {
       <div className="max-w-6xl mx-auto px-4 py-16">
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse border border-gray-200 shadow-sm">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#003366] text-white">
-                <th className="p-3 font-semibold text-sm border-r border-gray-300 w-16 text-center">S.No</th>
-                <th className="p-3 font-semibold text-sm border-r border-gray-300 w-32">Department</th>
-                <th className="p-3 font-semibold text-sm">Name of the Professional Body / Students Chapter</th>
+                <th className="p-4 font-bold text-[15px] w-20">S.No</th>
+                <th className="p-4 font-bold text-[15px] w-32">Department</th>
+                <th className="p-4 font-bold text-[15px]">Name of the Professional Body / Students Chapter</th>
               </tr>
             </thead>
             <tbody>
               {bodies.map((body, index) => (
-                <tr key={index} className="odd:bg-white even:bg-gray-100 transition-colors">
-                  <td className="p-3 text-sm text-gray-700 border-r border-gray-300 text-center">{body.sno}</td>
-                  <td className="p-3 text-sm text-gray-700 border-r border-gray-300">{body.dept}</td>
-                  <td className="p-3 text-sm text-gray-700">{body.name}</td>
+                <tr key={index} className="odd:bg-white even:bg-[#f3f4f6]">
+                  <td className="p-4 text-[15px] text-[#444]">{body.sno}</td>
+                  <td className="p-4 text-[15px] text-[#444]">{body.dept}</td>
+                  <td className="p-4 text-[15px] text-[#444]">{body.name}</td>
                 </tr>
               ))}
             </tbody>
