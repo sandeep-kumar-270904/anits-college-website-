@@ -63,7 +63,7 @@ const Home = () => {
           <div className="relative pt-[56.25%] rounded shadow-md overflow-hidden bg-gray-100 border border-gray-200">
             <iframe 
               className="absolute inset-0 w-full h-full" 
-              src="https://www.youtube.com/embed/placeholder" 
+              src="https://www.youtube.com/embed/eS36IpEMTak" 
               title="ANITS Campus Tour" 
               frameBorder="0" 
               allowFullScreen>
