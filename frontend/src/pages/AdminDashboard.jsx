@@ -205,7 +205,7 @@ const AdminDashboard = () => {
 
   const handleTrainModel = async () => {
     setIsTraining(true);
-    setTrainModelStatus('Training in progress... This might take a few seconds.');
+    setTrainModelStatus('🔄 Scraping live data from anits.edu.in, parsing PDF documents, and analyzing local React code... This will take a moment.');
     const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch('http://127.0.0.1:5000/api/train-model', {
@@ -214,7 +214,7 @@ const AdminDashboard = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        setTrainModelStatus('✅ Model Training Complete! The chatbot has learned the new data.');
+        setTrainModelStatus('✅ Model Training Complete! Successfully scraped anits.edu.in live pages, parsed all PDF documents, and digested local React UI components.');
       } else {
         setTrainModelStatus('❌ ' + (data.error || 'Training failed'));
       }
