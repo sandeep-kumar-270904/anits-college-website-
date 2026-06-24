@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, Lock, ArrowRight } from 'lucide-react';
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const AdminLogin = () => {
       const response = await fetch('http://127.0.0.1:5000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ email, password })
       });
       const data = await response.json();
       
@@ -53,6 +54,20 @@ const AdminLogin = () => {
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Authorized Email</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="admin@anits.edu.in"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900"
+                  required
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Master Password</label>
               <div className="relative">

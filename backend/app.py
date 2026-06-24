@@ -28,6 +28,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-admin-key-for-anits")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "anits123")
+ALLOWED_ADMIN_EMAILS = ["admin@anits.edu.in", "principal@anits.edu.in", "placements@anits.edu.in"]
 
 # Initialize LLMs
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -282,11 +283,15 @@ def token_required(f):
 @app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json()
+    email = data.get("email")
     password = data.get("password")
     
+    if email not in ALLOWED_ADMIN_EMAILS:
+        return jsonify({"error": "Unauthorized email address"}), 403
+        
     if password == ADMIN_PASSWORD:
         token = jwt.encode(
-            {"user": "admin", "exp": datetime.utcnow().timestamp() + 3600*24}, # 24 hr expire
+            {"user": email, "exp": datetime.utcnow().timestamp() + 3600*24}, # 24 hr expire
             JWT_SECRET,
             algorithm="HS256"
         )
