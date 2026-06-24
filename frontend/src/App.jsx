@@ -46,6 +46,7 @@ import ProfessionalBodies from './pages/ProfessionalBodies';
 import SwayamNptel from './pages/SwayamNptel';
 import ExamSection from './pages/ExamSection';
 import ELearning from './pages/ELearning';
+import AcademicCalendar from './pages/AcademicCalendar';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
@@ -67,7 +68,7 @@ function App() {
               <Route path="/about/organization-chart" element={<OrganizationChart />} />
               <Route path="/admissions" element={<Admissions />} />
               <Route path="/academics/syllabus" element={<Syllabus />} />
-              <Route path="/academics/calendar" element={<GenericAcademicPage />} />
+              <Route path="/academics/calendar" element={<AcademicCalendar />} />
               <Route path="/academics/timetable" element={<GenericAcademicPage />} />
               <Route path="/academics/e-learning" element={<ELearning />} />
               <Route path="/academics/exams" element={<ExamSection />} />
