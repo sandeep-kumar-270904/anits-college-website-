@@ -1113,7 +1113,7 @@ def chat():
                 "You are a highly intelligent, conversational campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
                 "You must strictly adhere to the provided ANITS College data. If asked something outside of this data or general knowledge, politely decline unless it's general knowledge you can safely answer using Google Search. "
                 "Maintain context from the conversation naturally. "
-                "CRITICAL: You MUST reply in the exact same language the user used in their prompt.\n\n"
+                f"CRITICAL: The user has typed their message in the ISO language code: '{lang_code}'. You MUST reply natively in that exact language script. Do not use English unless the user used English.\n\n"
                 f"FAQs & Database:\n{json.dumps(faq_data)}\n\n"
                 f"Website Code & Data:\n{website_context}\n\n"
                 f"Images Data:\n{image_context}\n\n"
