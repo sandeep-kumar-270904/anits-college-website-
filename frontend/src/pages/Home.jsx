@@ -179,21 +179,64 @@ const Home = () => {
       </section>
 
       {/* Top 6 Recruiters */}
-      <section className="py-16 bg-[#fcfcfc] text-center border-t border-gray-100">
+      <section className="py-16 bg-[#fcfcfc] text-center border-t border-gray-100 overflow-hidden">
+        <style>{`
+          .perspective-1000 { perspective: 1000px; }
+          .transform-style-3d { transform-style: preserve-3d; }
+          .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+          .rotate-y-180 { transform: rotateY(180deg); }
+          
+          @keyframes flipLoop {
+            0%, 15% { transform: rotateY(0deg); }
+            20%, 65% { transform: rotateY(180deg); }
+            70%, 100% { transform: rotateY(360deg); }
+          }
+          
+          .animate-flip-0 { animation: flipLoop 12s infinite; animation-delay: 0s; }
+          .animate-flip-1 { animation: flipLoop 12s infinite; animation-delay: 2s; }
+          .animate-flip-2 { animation: flipLoop 12s infinite; animation-delay: 4s; }
+          .animate-flip-3 { animation: flipLoop 12s infinite; animation-delay: 6s; }
+          .animate-flip-4 { animation: flipLoop 12s infinite; animation-delay: 8s; }
+          .animate-flip-5 { animation: flipLoop 12s infinite; animation-delay: 10s; }
+        `}</style>
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-[28px] font-bold text-[#111] mb-3 font-['Oswald',sans-serif]">Our Top 6 Recruiters</h2>
           <p className="text-gray-500 text-[13px] mb-12 max-w-3xl mx-auto leading-relaxed">We have grabbed the huge placements with stunning numbers who got placed in top MNCs with potential of our students. Our students achieved campus placements from Service-based to Product-based MNCs.</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-[#1e5391] text-white flex flex-col justify-center items-center p-4 rounded-md shadow-sm h-32">
-              <div className="font-bold text-[10px] uppercase tracking-wide mb-2 opacity-90">Highest Package</div>
-              <div className="text-2xl font-black mb-1">38 LPA</div>
-              <div className="text-[10px] uppercase opacity-80">Amazon (SDE 2024)</div>
+            
+            {/* Card 1: Highest Package */}
+            <div className="perspective-1000 h-[180px]">
+              <div className="relative w-full h-full transform-style-3d animate-flip-0">
+                {/* Front */}
+                <div className="absolute inset-0 backface-hidden bg-[#1e5391] text-white flex flex-col justify-center items-center p-4 rounded-md shadow-md">
+                  <div className="font-bold text-[10px] uppercase tracking-wide mb-2 opacity-90">Highest Package</div>
+                  <div className="text-3xl font-black mb-1">38 LPA</div>
+                  <div className="text-[10px] uppercase opacity-80 mt-2">Amazon (SDE 2024)</div>
+                </div>
+                {/* Back */}
+                <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#153f71] text-white flex flex-col justify-center items-center p-4 rounded-md shadow-md">
+                  <div className="text-2xl font-black mb-1">Dream Big!</div>
+                  <div className="text-[10px] uppercase opacity-80 mt-2 text-center">Join our top tier placement program</div>
+                </div>
+              </div>
             </div>
-            {['MEIL', 'Verizon', 'CarWale', 'Amazon', 'TCS'].map((company, i) => (
-              <div key={i} className="border border-gray-200 rounded-md flex justify-center items-center p-6 bg-white shadow-sm h-32">
-                <span className="font-bold text-gray-400 text-lg uppercase">{company}</span>
+
+            {/* Logo Cards 2-6 */}
+            {['Infosys', 'Verizon', 'CarWale', 'Amazon', 'TCS'].map((company, i) => (
+              <div key={i} className="perspective-1000 h-[180px]">
+                <div className={`relative w-full h-full transform-style-3d animate-flip-${i + 1}`}>
+                  {/* Front */}
+                  <div className="absolute inset-0 backface-hidden border border-gray-200 rounded-md flex justify-center items-center p-6 bg-white shadow-md">
+                    <span className="font-extrabold text-gray-500 text-xl tracking-wider uppercase">{company}</span>
+                  </div>
+                  {/* Back */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 border border-gray-200 rounded-md flex justify-center items-center p-6 bg-[#f8f9fa] shadow-md">
+                    <span className="font-extrabold text-[#1e5391] text-xl tracking-wider uppercase">{company}</span>
+                  </div>
+                </div>
               </div>
             ))}
+            
           </div>
         </div>
       </section>
