@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Mic } from 'lucide-react';
+import { MessageCircle, X, Send, Mic, Bot } from 'lucide-react';
+import './ChatWidget.css';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,56 +66,92 @@ const Chatbot = () => {
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
+      // Optional: automatically send when voice finishes, but user might want to edit.
     };
     recognition.start();
   };
 
   return (
-    <div className="chatbot-widget">
-      <div className={`chatbot-window ${isOpen ? 'open' : ''}`}>
+    <div className="chat-widget-container">
+      <div className={`chat-window ${isOpen ? 'open' : ''}`}>
+        
+        {/* Header */}
         <div className="chat-header">
-          <h3>ANITS Assistant</h3>
-          <X style={{cursor:'pointer'}} onClick={() => setIsOpen(false)} />
+          <div className="header-info">
+            <div className="bot-avatar">
+              <Bot size={24} />
+              <div className="online-dot"></div>
+            </div>
+            <div className="header-text">
+              <h3>ANITS Assistant</h3>
+              <p>Online | Translates Any Language</p>
+            </div>
+          </div>
+          <button className="close-btn" onClick={() => setIsOpen(false)}>
+            <X size={18} />
+          </button>
         </div>
+
+        {/* Body */}
         <div className="chat-body">
           {messages.length === 0 && (
-            <div style={{textAlign: 'center', color: '#666', marginTop: '20px'}}>
-              Hello! How can I help you today? You can type or speak in any language.
+            <div className="welcome-msg">
+              👋 Hello! I am the ANITS AI Assistant. <br/>You can type or speak in <strong>English, Telugu, Hindi</strong> or any other language!
             </div>
           )}
+          
           {messages.map((msg, idx) => (
-            <div key={idx} className={`message ${msg.sender}`}>
+            <div key={idx} className={`chat-message ${msg.sender}`}>
               {msg.text}
             </div>
           ))}
+          
           {isTyping && (
-            <div className="message bot typing-indicator">
-              ...
+            <div className="chat-message bot typing-indicator">
+              <div className="typing-dot"></div>
+              <div className="typing-dot"></div>
+              <div className="typing-dot"></div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
-        <div className="chat-input">
-          <input 
-            type="text" 
-            placeholder="Type your question..." 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          {speechSupported && (
-            <button onClick={startVoice} title="Use Microphone" style={{ color: isListening ? 'red' : 'currentColor' }}>
-              <Mic size={18} />
-            </button>
-          )}
-          <button onClick={handleSend}><Send size={18} /></button>
+
+        {/* Footer */}
+        <div className="chat-footer">
+          <div className="input-wrapper">
+            {speechSupported && (
+              <button 
+                className={`action-btn mic-btn ${isListening ? 'listening' : ''}`} 
+                onClick={startVoice} 
+                title="Use Microphone"
+              >
+                <Mic size={18} />
+              </button>
+            )}
+            <input 
+              className="chat-input-field"
+              type="text" 
+              placeholder="Ask a question..." 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          <button 
+            className="send-btn" 
+            onClick={handleSend}
+            disabled={!input.trim()}
+          >
+            <Send size={16} style={{ marginLeft: '2px' }} />
+          </button>
         </div>
+
       </div>
       
       {!isOpen && (
-        <div className="chatbot-toggle" onClick={() => setIsOpen(true)}>
-          <MessageCircle size={30} />
-        </div>
+        <button className="chat-toggle" onClick={() => setIsOpen(true)}>
+          <MessageCircle size={32} />
+        </button>
       )}
     </div>
   );
