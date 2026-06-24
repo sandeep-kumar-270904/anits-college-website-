@@ -9,8 +9,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from langdetect import detect
 from deep_translator import GoogleTranslator
-from openai import OpenAI
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from datetime import datetime
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -38,9 +38,9 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "anits123")
 ALLOWED_ADMIN_EMAILS = ["trailmail123456@gmail.com", "xiaomiindia75@gmail.com"]
 
 # Initialize LLMs
-client = OpenAI(api_key=OPENAI_API_KEY)
+gemini_client = None
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Flask app
 app = Flask(__name__)
@@ -1045,22 +1045,26 @@ def chat():
                 
             history = session['chat_history']
             
-            messages = [
-                {"role": "system", "content": "You are a helpful campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). Answer student questions based on the following context. Be concise and helpful.\n\nContext:\n" + pdf_context}
-            ]
-            
+            # Format history for Gemini
+            gemini_contents = []
             # Add history (last 5 interactions = 10 messages max)
             for msg in history[-10:]:
-                messages.append(msg)
+                role = "user" if msg["role"] == "user" else "model"
+                gemini_contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg["content"])]))
                 
-            messages.append({"role": "user", "content": user_message})
+            gemini_contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
             
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                max_tokens=300
+            sys_instruct = "You are a helpful campus assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). Answer student questions based on the following context. Be concise and helpful.\n\nContext:\n" + pdf_context
+            
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=gemini_contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=sys_instruct,
+                    max_output_tokens=300
+                )
             )
-            bot_reply = response.choices[0].message.content.strip()
+            bot_reply = response.text.strip()
             
             # Save history
             history.append({"role": "user", "content": user_message})
@@ -1070,7 +1074,7 @@ def chat():
             session.modified = True
             
         except Exception as e:
-            print("OpenAI error:", e)
+            print("Gemini API error:", e)
             bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
 
     # 5. Translate reply to detected language
