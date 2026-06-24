@@ -59,7 +59,7 @@ const AdminLogin = () => {
               <div className="relative">
                 <input
                   type="email"
-                  placeholder="admin@anits.edu.in"
+                  placeholder="your-email@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900"

@@ -28,7 +28,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-admin-key-for-anits")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "anits123")
-ALLOWED_ADMIN_EMAILS = ["admin@anits.edu.in", "principal@anits.edu.in", "placements@anits.edu.in"]
+ALLOWED_ADMIN_EMAILS = ["trailmail123456@gmail.com", "xiaomiindia75@gmail.com"]
 
 # Initialize LLMs
 client = OpenAI(api_key=OPENAI_API_KEY)
