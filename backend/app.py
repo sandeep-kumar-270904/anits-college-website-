@@ -1272,7 +1272,16 @@ def chat():
             trace = traceback.format_exc()
             print(f"Gemini API error: {e}")
             print(trace)
-            return jsonify({"reply": f"Error: {str(e)}\n\nTrace: {trace}"})
+            
+            error_str = str(e)
+            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                bot_reply = "I'm currently processing too many requests (Rate Limit Reached). Please wait about 30 seconds and ask me again!"
+            elif "503" in error_str or "UNAVAILABLE" in error_str:
+                bot_reply = "Google's AI servers are currently experiencing unusually high demand. Please try again in a few moments!"
+            else:
+                bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
+                
+            return jsonify({"reply": bot_reply})
 
     # 7. Chat logging to SQLite
     try:
