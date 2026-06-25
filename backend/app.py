@@ -1258,8 +1258,11 @@ def chat():
             session.modified = True
             
         except Exception as e:
-            print("Gemini API error:", e)
-            bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
+            import traceback
+            trace = traceback.format_exc()
+            print(f"Gemini API error: {e}")
+            print(trace)
+            return jsonify({"reply": f"Error: {str(e)}\n\nTrace: {trace}"})
 
     # 7. Chat logging to SQLite
     try:
