@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Mic, Bot } from 'lucide-react';
+import { MessageCircle, X, Send, Mic, Bot, Sun, Moon } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './ChatWidget.css';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState('dark'); // dark or light
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [speechSupported, setSpeechSupported] = useState(true);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
@@ -21,23 +22,28 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   const handleSend = async (audioBase64 = null) => {
     if (!input.trim() && !audioBase64) return;
 
-    const userMessage = input.trim();
-    if (userMessage) {
-      setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
+    const visualMessage = input.trim() || (audioBase64 ? "🎙️ Audio message sent..." : "");
+    
+    if (visualMessage) {
+      setMessages(prev => [...prev, { text: visualMessage, sender: 'user' }]);
       setInput('');
-    } else if (audioBase64) {
-      setMessages(prev => [...prev, { text: "🎙️ Audio message sent...", sender: 'user' }]);
     }
     
     setIsTyping(true);
 
     try {
-      const payload = { message: userMessage };
+      const payload = {};
       if (audioBase64) {
         payload.audio = audioBase64;
+      } else {
+        payload.message = visualMessage;
       }
       
       const response = await fetch('http://127.0.0.1:5000/chat', {
@@ -78,7 +84,6 @@ const Chatbot = () => {
           setInput(transcript); // Purely for visual feedback!
         };
         recognition.start();
-        // We will attach it to a ref so we can stop it later
         window.__activeRecognition = recognition;
       }
 
@@ -126,7 +131,7 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="chat-widget-container">
+    <div className={`chat-widget-container ${theme === 'light' ? 'light-mode' : ''}`}>
       <div className={`chat-window ${isOpen ? 'open' : ''}`}>
         
         {/* Header */}
@@ -138,25 +143,34 @@ const Chatbot = () => {
             </div>
             <div className="header-text">
               <h3>ANITS Assistant</h3>
-              <p>Online | Translates Any Language</p>
+              <p>Online | Native Language Support</p>
             </div>
           </div>
-          <button className="close-btn" onClick={() => setIsOpen(false)}>
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className="close-btn" onClick={toggleTheme} title="Toggle Theme">
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <button className="close-btn" onClick={() => setIsOpen(false)}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Body */}
         <div className="chat-body">
           {messages.length === 0 && (
             <div className="welcome-msg">
-              👋 Hello! I am the ANITS AI Assistant. <br/>You can type or speak in <strong>English, Telugu, Hindi</strong> or any other language!
+              👋 Hello! I am the ANITS AI Assistant. <br/>You can type or speak in <strong>English, Telugu, Hindi</strong> and 20 other languages!
             </div>
           )}
           
           {messages.map((msg, idx) => (
             <div key={idx} className={`chat-message ${msg.sender}`}>
-              {msg.text}
+              {msg.sender === 'bot' ? (
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
+              ) : (
+                msg.text
+              )}
             </div>
           ))}
           

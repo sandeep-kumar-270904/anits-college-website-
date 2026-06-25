@@ -1,10 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Menu, X, Phone } from 'lucide-react';
+import { ChevronDown, ChevronRight, Menu, X, Phone, Moon, Sun } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -37,7 +53,7 @@ const Navbar = () => {
       {/* Middle Logo Bar */}
       <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center bg-white">
         {/* Left side logos/text */}
-        <div className="flex items-center gap-4">
+        <Link to="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
           <div className="flex flex-col items-center justify-center">
             <div className="w-14 h-14 rounded-full border-2 border-gray-800 flex items-center justify-center font-serif font-black text-xl text-gray-800">A</div>
             <span className="font-serif font-bold text-[12px] mt-0.5 tracking-widest text-gray-800">ANITS</span>
@@ -45,7 +61,7 @@ const Navbar = () => {
           <div className="text-[#e85c2b] font-bold text-[22px] tracking-wide leading-tight flex flex-col ml-2">
             <span>ANIL NEERUKONDA INSTITUTE OF TECHNOLOGY & SCIENCES <span className="text-[14px] font-medium text-[#e85c2b]">(AUTONOMOUS)</span></span>
           </div>
-        </div>
+        </Link>
 
         {/* Right side badges & button */}
         <div className="flex items-center gap-4 mt-4 md:mt-0">
@@ -57,6 +73,13 @@ const Navbar = () => {
             <span className="text-[16px] block mb-0.5">A+</span>
             <span>NAAC</span>
           </div>
+          <button 
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm ml-2 text-gray-700"
+            title="Toggle Dark Mode"
+          >
+            {isDarkMode ? <Sun size={20} className="text-amber-500" /> : <Moon size={20} className="text-slate-600" />}
+          </button>
           <a href="tel:8712005999" className="bg-[#317ab3] hover:bg-[#256294] transition-colors text-white rounded px-4 py-2 flex items-center gap-3 shadow-md ml-2">
             <Phone size={24} />
             <div className="flex flex-col text-left">
