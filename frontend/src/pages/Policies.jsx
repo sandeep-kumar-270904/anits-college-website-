@@ -47,7 +47,7 @@ const Policies = () => {
             <tbody className="text-gray-700">
               {policiesList.map((policy, index) => {
                 const formattedName = policy.toLowerCase().replace(/ /g, '-').replace(/\//g, '-');
-                const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+                const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
                 const fileUrl = `${API_URL}/api/policy_file/${formattedName}.pdf`;
                 
                 return (

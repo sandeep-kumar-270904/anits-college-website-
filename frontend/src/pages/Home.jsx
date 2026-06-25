@@ -19,7 +19,7 @@ const Home = () => {
   }, [images.length]);
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     fetch(`${API_URL}/api/events`)
       .then(res => res.json())
       .then(data => {

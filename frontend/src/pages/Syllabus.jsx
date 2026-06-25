@@ -9,7 +9,7 @@ const Syllabus = () => {
   useEffect(() => {
     const fetchSyllabus = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
         const response = await fetch(`${API_URL}/api/syllabus`);
         if (response.ok) {
           const data = await response.json();
@@ -63,7 +63,7 @@ const Syllabus = () => {
                   
                   <div className="space-y-4">
                     {items.map((item, itemIdx) => {
-                      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+                      const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
                       const fileUrl = `${API_URL}/api/syllabus_file/${item.filename}`;
                       
                       return (

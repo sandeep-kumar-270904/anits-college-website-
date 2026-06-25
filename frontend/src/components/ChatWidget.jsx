@@ -58,7 +58,7 @@ const ChatWidget = () => {
     try {
       // In production, this should point to your deployed backend URL.
       // E.g. https://your-backend.com/chat
-      const response = await fetch('http://127.0.0.1:5000/chat', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText }),

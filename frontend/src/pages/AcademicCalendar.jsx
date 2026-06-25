@@ -8,7 +8,7 @@ const AcademicCalendar = () => {
   useEffect(() => {
     const fetchCalendar = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
         const response = await fetch(`${API_URL}/api/academic_calendar`);
         if (response.ok) {
           const data = await response.json();
@@ -61,7 +61,7 @@ const AcademicCalendar = () => {
                     
                     {/* Data Rows */}
                     {section.items.map((item, itemIdx) => {
-                      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+                      const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
                       const downloadUrl = `${API_URL}/api/academic_calendar_file/${item.filename}`;
                       return (
                         <tr key={itemIdx} className="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">

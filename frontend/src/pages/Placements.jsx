@@ -58,7 +58,7 @@ const Placements = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
       try {
         const response = await fetch(`${API_URL}/api/placements`);
         const data = await response.json();
@@ -86,7 +86,7 @@ const Placements = () => {
     };
     
     const fetchJobs = async () => {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
       try {
         const response = await fetch(`${API_URL}/api/jobs`);
         const data = await response.json();

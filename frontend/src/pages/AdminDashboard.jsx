@@ -115,7 +115,7 @@ const AdminDashboard = () => {
 
   const fetchLogs = async (token) => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/logs', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/logs`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -134,7 +134,7 @@ const AdminDashboard = () => {
 
   const fetchAnalytics = async (token) => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/analytics', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/analytics`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -147,12 +147,12 @@ const AdminDashboard = () => {
   };
 
   const handleExportCSV = () => {
-    window.location.href = 'http://127.0.0.1:5000/export';
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/export`;
   };
 
   const fetchEnquiries = async (token) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
       const response = await fetch(`${API_URL}/api/enquiries`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
     
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/upload_circular', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/upload_circular`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -212,7 +212,7 @@ const AdminDashboard = () => {
     setTrainWebStatus('🔄 Scraping live data from anits.org deeply... This may take a moment.');
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/train-web', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/train-web`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -234,7 +234,7 @@ const AdminDashboard = () => {
     setTrainDocsStatus('🔄 Parsing uploaded PDFs and Circulars...');
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/train-docs', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/train-docs`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -256,7 +256,7 @@ const AdminDashboard = () => {
     setTrainUIStatus('🔄 Indexing local React UI codebase...');
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/train-ui', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/train-ui`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -296,7 +296,7 @@ const AdminDashboard = () => {
     
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/upload_syllabus', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/upload_syllabus`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -332,7 +332,7 @@ const AdminDashboard = () => {
     formData.append('file', policyFile);
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     
     try {
       const response = await fetch(`${API_URL}/api/upload_policy`, {
@@ -372,7 +372,7 @@ const AdminDashboard = () => {
     formData.append('file', calendarFile);
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/upload_academic_calendar`, {
         method: 'POST',
@@ -406,7 +406,7 @@ const AdminDashboard = () => {
     formData.append('file', timeTableFile);
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/upload_time_table`, {
         method: 'POST',
@@ -436,7 +436,7 @@ const AdminDashboard = () => {
     setEventUploadStatus('Adding event...');
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/events`, {
         method: 'POST',
@@ -475,7 +475,7 @@ const AdminDashboard = () => {
     setFacultyUploadStatus('Adding faculty...');
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/faculty`, {
         method: 'POST',
@@ -517,7 +517,7 @@ const AdminDashboard = () => {
     setPlacementUploadStatus('Adding placement stats...');
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/placements`, {
         method: 'POST',
@@ -559,7 +559,7 @@ const AdminDashboard = () => {
     setResearchUploadStatus('Adding research publication...');
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/research`, {
         method: 'POST',
@@ -608,7 +608,7 @@ const AdminDashboard = () => {
     formData.append('category', galleryCategory);
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/upload_gallery`, {
         method: 'POST',
@@ -649,7 +649,7 @@ const AdminDashboard = () => {
     }
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/upload_blog`, {
         method: 'POST',
@@ -694,7 +694,7 @@ const AdminDashboard = () => {
     };
     
     const token = localStorage.getItem('adminToken');
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
     try {
       const response = await fetch(`${API_URL}/api/jobs`, {
         method: 'POST',

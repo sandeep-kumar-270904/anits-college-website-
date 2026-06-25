@@ -12,7 +12,7 @@ const Gallery = () => {
 
   useEffect(() => {
     const fetchGallery = async () => {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
       try {
         const response = await fetch(`${API_URL}/api/gallery`);
         const data = await response.json();
@@ -31,7 +31,7 @@ const Gallery = () => {
     ? images 
     : images.filter(img => img.category === activeCategory);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+  const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
 
   return (
     <div className="font-sans pt-[80px] min-h-screen bg-gray-50 pb-16">

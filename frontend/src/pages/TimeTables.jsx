@@ -16,7 +16,7 @@ const TimeTables = () => {
     // Fetch dynamic time tables from backend
     const fetchTimeTables = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        const API_URL = import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}`;
         const response = await fetch(`${API_URL}/api/time_tables`);
         if (response.ok) {
           const data = await response.json();
