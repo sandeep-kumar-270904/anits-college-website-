@@ -97,7 +97,7 @@ ANITS College Translation Chat Application is an **AI-powered multilingual campu
 |---------|-------------|--------|
 | **Multilingual Chat** | Automatic language detection (12+ languages) | ✅ Active |
 | **FAQ Matching** | Intelligent question-answer matching | ✅ Active |
-| **AI Fallback** | Gemini 3.5 Flash for intelligent responses | ✅ Active |
+| **AI Fallback** | Gemini 2.5 Flash for intelligent responses | ✅ Active |
 | **PDF Processing** | Text extraction from college circulars | ✅ Active |
 | **Chat Logging** | Full conversation history with metadata | ✅ Active |
 | **Admin Analytics** | Language trends and question analysis | ✅ Active |
@@ -135,7 +135,7 @@ ANITS College Translation Chat Application is an **AI-powered multilingual campu
 
 | Technology | Version | Purpose | Rationale |
 |-----------|---------|---------|-----------|
-| **Google Gemini API** | Latest | Core LLM & Translation | Gemini 3.5 Flash for intelligent, multimodal responses |
+| **Google Gemini API** | Latest | Core LLM & Translation | Gemini 2.5 Flash for intelligent, multimodal responses |
 | **langdetect** | Latest | Language Detection | Fast, accurate detection |
 
 ### Document Processing
