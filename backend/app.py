@@ -300,6 +300,11 @@ def extract_website_data():
 @lru_cache(maxsize=1)
 def extract_image_data():
     if not gemini_client: return ""
+    file_path = "../data/image_context.txt"
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+            
     data = ""
     img_dirs = ["../data/gallery", "../data/blogs"]
     for img_dir in img_dirs:
@@ -312,48 +317,73 @@ def extract_image_data():
                     with open(os.path.join(img_dir, file), "rb") as f:
                         image_bytes = f.read()
                     response = gemini_client.models.generate_content(
-                        model="gemini-2.5-flash",
+                        model="gemini-3.5-flash",
                         contents=[
                             types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                             "Describe this image in extreme detail and transcribe any text you see in it. This is for a college website database."
                         ]
                     )
-                    data += f"\\n--- Image: {file} ---\\n{response.text}\\n"
+                    data += f"\n--- Image: {file} ---\n{response.text}\n"
                 except Exception as e:
                     print(f"Error processing image {file}: {e}")
+                    
+    # Save to file
+    os.makedirs("../data", exist_ok=True)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(data)
     return data
 
-@lru_cache(maxsize=1)
-def extract_official_website_data():
+def perform_deep_scrape_anits_org():
+    base_url = "https://anits.org"
+    visited = set()
+    to_visit = [base_url]
     data = ""
-    urls_to_scrape = [
-        "https://www.anits.edu.in/",
-        "https://www.anits.edu.in/about_us.php",
-        "https://www.anits.edu.in/placements.php",
-        "https://www.anits.edu.in/cse_dept.php",
-        "https://www.anits.edu.in/ece_dept.php",
-        "https://www.anits.edu.in/eee_dept.php",
-        "https://www.anits.edu.in/it_dept.php",
-        "https://www.anits.edu.in/mech_dept.php",
-        "https://www.anits.edu.in/civil_dept.php",
-        "https://www.anits.edu.in/chem_dept.php",
-        "https://www.anits.edu.in/library.php",
-        "https://www.anits.edu.in/facilities.php",
-        "https://www.anits.edu.in/contact_us.php"
-    ]
-    for url in urls_to_scrape:
+    
+    # Simple BFS scraper, max 25 pages to avoid infinite loops
+    max_pages = 25
+    count = 0
+    
+    while to_visit and count < max_pages:
+        url = to_visit.pop(0)
+        if url in visited:
+            continue
+            
+        visited.add(url)
+        count += 1
+        
         try:
             response = requests.get(url, timeout=10, verify=False)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, "html.parser")
-                # Remove script and style elements
                 for script in soup(["script", "style"]):
                     script.extract()
                 text = soup.get_text(separator=' ', strip=True)
-                data += f"\\n--- Official Page: {url} ---\\n{text}\\n"
+                data += f"\n--- Official Page: {url} ---\n{text}\n"
+                
+                # Find links
+                for link in soup.find_all("a", href=True):
+                    href = link['href']
+                    if href.startswith("/"):
+                        href = base_url + href
+                    if href.startswith(base_url) and href not in visited and "#" not in href:
+                        to_visit.append(href)
         except Exception as e:
             print(f"Error scraping {url}: {e}")
+            
+    # Save to file
+    os.makedirs("../data", exist_ok=True)
+    with open("../data/scraped_anits_org.txt", "w", encoding="utf-8") as f:
+        f.write(data)
     return data
+
+@lru_cache(maxsize=1)
+def extract_official_website_data():
+    file_path = "../data/scraped_anits_org.txt"
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    # If not exists, do a quick fallback or perform scrape
+    return perform_deep_scrape_anits_org()
 
 # Load FAQs
 faq_data = []
@@ -1077,21 +1107,34 @@ def get_enquiries():
     data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return jsonify(data)
 
-@app.route("/api/train-model", methods=["POST"])
+@app.route("/api/train-web", methods=["POST"])
 @token_required
-def train_model():
+def train_web():
     try:
-        # Clear the caches
-        extract_text_from_pdfs.cache_clear()
-        extract_website_data.cache_clear()
-        extract_image_data.cache_clear()
+        perform_deep_scrape_anits_org()
         extract_official_website_data.cache_clear()
-        # Pre-warm the caches
-        extract_text_from_pdfs()
-        extract_website_data()
-        extract_image_data()
-        extract_official_website_data()
-        return jsonify({"message": "Model training complete. New data ingested successfully."})
+        extract_official_website_data() # pre-warm
+        return jsonify({"message": "Deep scrape of anits.org complete."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/train-docs", methods=["POST"])
+@token_required
+def train_docs():
+    try:
+        extract_text_from_pdfs.cache_clear()
+        extract_text_from_pdfs() # pre-warm
+        return jsonify({"message": "PDFs and Documents processed successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/train-ui", methods=["POST"])
+@token_required
+def train_ui():
+    try:
+        extract_website_data.cache_clear()
+        extract_website_data() # pre-warm
+        return jsonify({"message": "Local React UI Codebase indexed successfully."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1129,7 +1172,8 @@ def chat():
         try:
             # Prepare context
             pdf_context = extract_text_from_pdfs()
-            website_context = extract_website_data() + "\\n" + extract_official_website_data()
+            official_web_context = extract_official_website_data()
+            ui_code_context = extract_website_data()
             image_context = extract_image_data()
             
             # Load session history
@@ -1164,19 +1208,22 @@ def chat():
                 "Act as a friendly, helpful, and concise conversational assistant. Begin conversations politely (e.g., 'How can I help you?'). "
                 "You actively fetch live internet data when asked about current events, global knowledge, or anything outside the provided college dataset. "
                 "Use your built-in Google Search tool to answer anything the user asks you about the real world! "
-                "For ANITS-specific questions, heavily rely on the provided 'Website Code & Data' which contains deep-scraped real-time pages from anits.edu.in. "
-                "CRITICAL: Never mention internal file names (like .jsx or .py files), PDFs, or say 'according to the scraped data/code'. Synthesize the information naturally as if you are a human college expert speaking directly to a student! "
-                "ONLY if the user explicitly asks how you were trained or what data you access, you should explain that you are deeply trained on live anits.edu.in web data, PDF documents, and codebase files. Otherwise, keep your answers strictly focused on their question. "
+                "For ANITS-specific questions, heavily rely on the 'Official Website Data' which contains deep-scraped real-time pages from anits.org. "
+                "CRITICAL INSTRUCTION FOR FORMATTING: The user HATES raw AI symbols like asterisks (*) or em dashes (--). Do NOT output raw asterisk lists or em dashes. Use proper cleanly formatted paragraphs, or numbered lists (1. 2. 3.). "
+                "CRITICAL INSTRUCTION FOR ANONYMITY: Never mention internal file names (like .jsx or .py files), PDFs, or say 'according to the scraped data'. Synthesize the information naturally as if you are a human college expert speaking directly to a student! "
+                "ONLY if the user explicitly asks how you were trained or to analyze the 'Local UI Code', then you may reference the source code. Otherwise, keep your answers strictly focused on their question. "
                 "Maintain context from the conversation naturally. "
-                "If the user speaks to you via audio, you will natively hear and detect the language. Reply in the same language. "
-                f"CRITICAL: If the user typed text, their ISO language code is: '{lang_code}'. You MUST reply natively in that exact language script. Do not use English unless the user used English.\n\n"
-                f"FAQs & Database:\n{json.dumps(faq_data)}\n\n"
-                f"Website Code & Data:\n{website_context}\n\n"
-                f"Images Data:\n{image_context}\n\n"
-                f"PDF Context:\n{pdf_context}"
+                "CRITICAL INSTRUCTION FOR LANGUAGES: You natively support ALL 23 Official Languages of India (Assamese, Bengali, Bodo, Dogri, Gujarati, Hindi, Kannada, Kashmiri, Konkani, Maithili, Malayalam, Manipuri, Marathi, Nepali, Odia, Punjabi, Sanskrit, Santali, Sindhi, Tamil, Telugu, Urdu, and English). "
+                "If the user speaks or types to you in ANY of these languages, you MUST reply fluently in that exact same language script. "
+                f"Current detected text language code: '{lang_code}'. Reply natively if it is non-English.\n\n"
+                f"FAQs & Database:\n{json.dumps(faq_data)[:5000]}\n\n"
+                f"Official Website Data (anits.org):\n{official_web_context[:60000]}\n\n"
+                f"PDF Documents Context:\n{pdf_context[:40000]}\n\n"
+                f"Images Data:\n{image_context[:20000]}\n\n"
+                f"Local UI Code (ONLY use if asked about code):\n{ui_code_context[:5000]}"
             )
             response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.5-flash",
                 contents=gemini_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=sys_instruct,
@@ -1321,4 +1368,18 @@ def health_check():
         }), 500
 
 if __name__ == "__main__":
+    import threading
+    def prewarm_cache():
+        print("Pre-warming caches in background...")
+        try:
+            extract_text_from_pdfs()
+            extract_official_website_data()
+            extract_website_data()
+            extract_image_data()
+            print("Caches pre-warmed successfully!")
+        except Exception as e:
+            print("Error pre-warming caches:", e)
+            
+    threading.Thread(target=prewarm_cache, daemon=True).start()
+    
     app.run(debug=True)
