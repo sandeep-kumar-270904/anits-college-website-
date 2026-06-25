@@ -97,7 +97,7 @@ ANITS College Translation Chat Application is an **AI-powered multilingual campu
 |---------|-------------|--------|
 | **Multilingual Chat** | Automatic language detection (12+ languages) | ✅ Active |
 | **FAQ Matching** | Intelligent question-answer matching | ✅ Active |
-| **AI Fallback** | GPT-4o mini for novel queries | ✅ Active |
+| **AI Fallback** | Gemini 3.5 Flash for intelligent responses | ✅ Active |
 | **PDF Processing** | Text extraction from college circulars | ✅ Active |
 | **Chat Logging** | Full conversation history with metadata | ✅ Active |
 | **Admin Analytics** | Language trends and question analysis | ✅ Active |
@@ -135,8 +135,7 @@ ANITS College Translation Chat Application is an **AI-powered multilingual campu
 
 | Technology | Version | Purpose | Rationale |
 |-----------|---------|---------|-----------|
-| **OpenAI API** | Latest | LLM Fallback | GPT-4o mini for intelligent responses |
-| **Google Translate** | 4.0.0-rc1 | Translation Engine | 100+ language pairs |
+| **Google Gemini API** | Latest | Core LLM & Translation | Gemini 3.5 Flash for intelligent, multimodal responses |
 | **langdetect** | Latest | Language Detection | Fast, accurate detection |
 
 ### Document Processing
@@ -205,19 +204,15 @@ anits-college-website-/
 │   ├── requirements.txt        # Backend dependencies
 │   ├── database.db            # SQLite database
 │   └── venv312/               # Virtual environment
-├── frontend/                   # Web UI
-│   ├── index.html             # Homepage
-│   ├── about.html
-│   ├── departments.html
-│   ├── faculty.html
-│   ├── events.html
-│   ├── circulars.html
-│   ├── contact.html
-│   ├── timetable.html
-│   ├── css/                   # Stylesheets
-│   ├── js/                    # JavaScript
-│   ├── assets/                # Images/media
-│   └── data/                  # Frontend data
+├── frontend/                   # React Web UI
+│   ├── public/                # Public assets
+│   ├── src/                   # React source code
+│   │   ├── components/        # Reusable React components (Navbar, Chatbot, etc.)
+│   │   ├── pages/             # Route pages (Home, AdminDashboard, etc.)
+│   │   ├── App.jsx            # Main React App routing
+│   │   └── index.css          # Global Tailwind styles
+│   ├── package.json           # React dependencies
+│   └── vite.config.js         # Vite configuration
 ├── data/                       # Shared resources
 │   ├── faqs.json              # FAQ database
 │   └── circulars/             # PDF documents
@@ -273,12 +268,20 @@ cp .env.example .env
 
 ### Step 5: Run Application
 
+Terminal 1 (Backend):
 ```bash
 cd backend
 python app.py
 ```
 
-Visit: http://localhost:5000
+Terminal 2 (Frontend):
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Visit: http://localhost:5173
 
 ---
 
@@ -567,16 +570,10 @@ engine = create_engine(
 )
 ```
 
-#### openai.error.RateLimitError
+#### Gemini 429 RESOURCE_EXHAUSTED
 ```python
-# Implement retry logic with exponential backoff
-import time
-
-for attempt in range(3):
-    try:
-        return openai.ChatCompletion.create(...)
-    except openai.error.RateLimitError:
-        time.sleep(2 ** attempt)
+# Fixed by truncating context and using background pre-warming threads.
+# Ensure your context injection isn't exceeding the API limits.
 ```
 
 ### Debug Logging
@@ -618,13 +615,13 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE)
 
 **Credits:**
 - Flask, SQLAlchemy, PyMuPDF communities
-- OpenAI GPT-4
-- Google Translate
+- Google Gemini API
+- React & Vite ecosystems
 - langdetect library
 
 **Contributors:** Sandeep Kumar, ANITS Development Team
 
 ---
 
-**Last Updated:** June 4, 2026  
+**Last Updated:** June 25, 2026  
 **Support:** cs@anits.edu.in | +91-891-2841111
