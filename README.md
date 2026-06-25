@@ -131,6 +131,15 @@ ANITS College Translation Chat Application is an **AI-powered multilingual campu
 | **Flask-CORS** | 4.0.0 | CORS Handling | Cross-origin request support |
 | **Flask-SQLAlchemy** | 3.0.5 | ORM Layer | Database abstraction |
 
+### Frontend Framework & UI
+
+| Technology | Version | Purpose | Rationale |
+|-----------|---------|---------|-----------|
+| **React** | 18+ | UI Library | Component-based architecture for modern web apps |
+| **Vite** | Latest | Build Tool | Lightning fast HMR and optimized builds |
+| **Tailwind CSS** | Latest | Styling | Utility-first CSS framework for custom theming |
+| **React Router** | 6+ | Navigation | Client-side routing for seamless page transitions |
+
 ### AI/NLP & Translation
 
 | Technology | Version | Purpose | Rationale |
