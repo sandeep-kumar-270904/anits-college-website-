@@ -208,7 +208,7 @@
 }
 
 /* React Markdown adjustments */
-.chat-message.bot p { margin-top: 0; margin-bottom: 0.5em; }
+.chat-message.bot p { margin-top: 0; margin-bottom: 0.5em; white-space: pre-wrap; }
 .chat-message.bot p:last-child { margin-bottom: 0; }
 .chat-message.bot strong { color: #10b981; }
 .chat-message.bot ul, .chat-message.bot ol { padding-left: 20px; margin: 0.5em 0; }
