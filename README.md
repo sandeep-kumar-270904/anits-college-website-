@@ -628,7 +628,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE)
 - React & Vite ecosystems
 - langdetect library
 
-**Contributors:** Sandeep Kumar, ANITS Development Team
+**Contributors:** Sandeep Kumar
 
 ---
 
