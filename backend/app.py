@@ -1176,6 +1176,23 @@ def chat():
             ui_code_context = extract_website_data()
             image_context = extract_image_data()
             
+            # Basic RAG / Context Filtering to prevent 503 high-demand retries and extreme latency
+            def get_relevant_chunks(text, query, chunk_size=2000, top_k=2):
+                if not text or not query: return text[:chunk_size*top_k]
+                chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+                query_words = set(query.lower().replace('?', '').replace(',', '').split())
+                
+                def score(chunk):
+                    chunk_lower = chunk.lower()
+                    return sum(1 for w in query_words if w in chunk_lower)
+                
+                scored = sorted(chunks, key=score, reverse=True)
+                return "\n...\n".join(scored[:top_k])
+
+            relevant_web = get_relevant_chunks(official_web_context, user_message, 2500, 3)
+            relevant_pdf = get_relevant_chunks(pdf_context, user_message, 2500, 2)
+            relevant_img = get_relevant_chunks(image_context, user_message, 1500, 1)
+            
             # Load session history
             if 'chat_history' not in session:
                 session['chat_history'] = []
@@ -1217,10 +1234,10 @@ def chat():
                 "If the user speaks or types to you in ANY of these languages, you MUST reply fluently in that exact same language script. "
                 f"Current detected text language code: '{lang_code}'. Reply natively if it is non-English.\n\n"
                 f"FAQs & Database:\n{json.dumps(faq_data)[:5000]}\n\n"
-                f"Official Website Data (anits.org):\n{official_web_context[:60000]}\n\n"
-                f"PDF Documents Context:\n{pdf_context[:40000]}\n\n"
-                f"Images Data:\n{image_context[:20000]}\n\n"
-                f"Local UI Code (ONLY use if asked about code):\n{ui_code_context[:5000]}"
+                f"Official Website Data (anits.org):\n{relevant_web}\n\n"
+                f"PDF Documents Context:\n{relevant_pdf}\n\n"
+                f"Images Data:\n{relevant_img}\n\n"
+                f"Local UI Code (ONLY use if asked about code):\n{ui_code_context[:3000]}"
             )
             response = gemini_client.models.generate_content(
                 model="gemini-2.5-flash",
