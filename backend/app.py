@@ -1176,11 +1176,27 @@ def chat():
             ui_code_context = extract_website_data()
             image_context = extract_image_data()
             
+            # Load session history first so we can use it for RAG
+            if 'chat_history' not in session:
+                session['chat_history'] = []
+            history = session['chat_history']
+            
             # Basic RAG / Context Filtering to prevent 503 high-demand retries and extreme latency
-            def get_relevant_chunks(text, query, chunk_size=2000, top_k=2):
-                if not text or not query: return text[:chunk_size*top_k]
+            def get_relevant_chunks(text, query, history, chunk_size=2000, top_k=2):
+                if not text: return ""
+                
+                # Build context-aware query by combining last user message and current query
+                context_query = query
+                if len(history) >= 2:
+                    context_query = history[-2].get("content", "") + " " + query
+                    
+                query_words = set(context_query.lower().replace('?', '').replace(',', '').split())
+                stop_words = {"what", "is", "the", "tell", "me", "about", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "from", "are", "they", "it", "this", "that", "these", "those", "can", "you", "show", "how", "why", "when", "where", "who", "which", "please", "do", "does", "did", "have", "has", "had", "would", "could", "should", "some"}
+                query_words = query_words - stop_words
+                
+                if not query_words: return text[:chunk_size*top_k]
+                
                 chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
-                query_words = set(query.lower().replace('?', '').replace(',', '').split())
                 
                 def score(chunk):
                     chunk_lower = chunk.lower()
@@ -1189,15 +1205,9 @@ def chat():
                 scored = sorted(chunks, key=score, reverse=True)
                 return "\n...\n".join(scored[:top_k])
 
-            relevant_web = get_relevant_chunks(official_web_context, user_message, 2500, 3)
-            relevant_pdf = get_relevant_chunks(pdf_context, user_message, 2500, 2)
-            relevant_img = get_relevant_chunks(image_context, user_message, 1500, 1)
-            
-            # Load session history
-            if 'chat_history' not in session:
-                session['chat_history'] = []
-                
-            history = session['chat_history']
+            relevant_web = get_relevant_chunks(official_web_context, user_message, history, 2500, 3)
+            relevant_pdf = get_relevant_chunks(pdf_context, user_message, history, 2500, 2)
+            relevant_img = get_relevant_chunks(image_context, user_message, history, 1500, 1)
             
             # Format history for Gemini
             gemini_contents = []
