@@ -317,7 +317,7 @@ def extract_image_data():
                     with open(os.path.join(img_dir, file), "rb") as f:
                         image_bytes = f.read()
                     response = gemini_client.models.generate_content(
-                        model="gemini-2.5-flash",
+                        model="gemini-2.5-flash-lite",
                         contents=[
                             types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                             "Describe this image in extreme detail and transcribe any text you see in it. This is for a college website database."
@@ -1250,7 +1250,7 @@ def chat():
                 f"Local UI Code (ONLY use if asked about code):\n{ui_code_context[:3000]}"
             )
             response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.5-flash-lite",
                 contents=gemini_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=sys_instruct,
