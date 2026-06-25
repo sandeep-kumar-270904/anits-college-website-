@@ -3,11 +3,12 @@ flask-cors
 flask-limiter
 openai>=1.0.0
 python-dotenv
-pymupdf        # for extracting text from PDFs
-langdetect     # detect language
-deep-translator  # for translations
-pymongo        # MongoDB driver
-PyJWT          # JSON Web Tokens for auth
-google-generativeai # Google Gemini API
-Flask-SQLAlchemy   # Database ORM
-scikit-learn       # TF-IDF for ML-scored FAQ matching
+pymupdf
+langdetect
+deep-translator
+pymongo
+PyJWT
+google-genai
+Flask-SQLAlchemy
+scikit-learn
+gunicorn
