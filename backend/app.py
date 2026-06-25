@@ -317,7 +317,7 @@ def extract_image_data():
                     with open(os.path.join(img_dir, file), "rb") as f:
                         image_bytes = f.read()
                     response = gemini_client.models.generate_content(
-                        model="gemini-2.5-flash-lite",
+                        model="gemini-2.5-flash",
                         contents=[
                             types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                             "Describe this image in extreme detail and transcribe any text you see in it. This is for a college website database."
@@ -1250,7 +1250,7 @@ def chat():
                 f"Local UI Code (ONLY use if asked about code):\n{ui_code_context[:3000]}"
             )
             response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash-lite",
+                model="gemini-2.5-flash",
                 contents=gemini_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=sys_instruct,
@@ -1275,9 +1275,9 @@ def chat():
             
             error_str = str(e)
             if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
-                bot_reply = "I'm currently processing too many requests (Rate Limit Reached). Please wait about 30 seconds and ask me again!"
+                bot_reply = "I am currently processing too many requests (Rate Limit Reached). Please wait about 30 seconds and ask me again!"
             elif "503" in error_str or "UNAVAILABLE" in error_str:
-                bot_reply = "Google's AI servers are currently experiencing unusually high demand. Please try again in a few moments!"
+                bot_reply = "I am currently experiencing a massive surge in traffic! Please give me a few moments and try your question again."
             else:
                 bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
                 
