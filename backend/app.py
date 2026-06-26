@@ -1264,7 +1264,7 @@ def answer_query(user_message, session_id="default", audio_payload=None):
             contents=gemini_contents,
             config=types.GenerateContentConfig(
                 system_instruction=sys_instruct,
-                max_output_tokens=300,
+                max_output_tokens=2048,
                 tools=[{"google_search": {}}]
             )
         )
