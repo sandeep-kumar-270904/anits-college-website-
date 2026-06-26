@@ -1168,7 +1168,15 @@ MAX_MESSAGE_LENGTH = 10000
 
 
 
+query_cache = {}
+
 def answer_query(user_message, session_id="default", audio_payload=None):
+    if not audio_payload and user_message:
+        normalized_query = user_message.lower().strip()
+        if normalized_query in query_cache:
+            print("Cache hit for:", normalized_query)
+            return query_cache[normalized_query]
+            
     try:
         # langdetect is notoriously inaccurate for very short words like "hi" or "hallo"
         if user_message and len(user_message.split()) >= 3:
@@ -1277,6 +1285,11 @@ def answer_query(user_message, session_id="default", audio_payload=None):
         bot_reply = re.sub(r'#+\s*(.*?)\n', r'\1\n', bot_reply) # Remove heading hashes
         bot_reply = bot_reply.replace('---', '-')
         
+        # Save to cache
+        if not audio_payload and user_message:
+            normalized_query = user_message.lower().strip()
+            query_cache[normalized_query] = bot_reply
+            
         # Log to MongoDB
         try:
             if db is not None:
@@ -1364,6 +1377,24 @@ def whatsapp_webhook():
     # Acknowledge receipt immediately without processing
     return '', 200
 
+
+@app.route("/api/recent_queries", methods=["GET"])
+@token_required
+def recent_queries():
+    try:
+        # Fetch the last 50 queries
+        recent_docs = list(ChatLog.query.order_by(ChatLog.timestamp.desc()).limit(50).all())
+        queries = []
+        for doc in recent_docs:
+            queries.append({
+                "id": doc.id,
+                "user_message": doc.user_message,
+                "detected_language": doc.detected_language,
+                "timestamp": doc.timestamp.isoformat()
+            })
+        return jsonify(queries)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/analytics", methods=["GET"])
 def analytics():
@@ -1481,20 +1512,45 @@ def telegram_polling():
                     for update in data["result"]:
                         offset = update["update_id"] + 1
                         
-                        if "message" in update and "text" in update["message"]:
-                            chat_id = update["message"]["chat"]["id"]
-                            user_text = update["message"]["text"]
+                        if "message" in update:
+                            msg = update["message"]
+                            chat_id = msg["chat"]["id"]
                             session_id = f"telegram_{chat_id}"
                             
-                            # Type indicator
-                            requests.post(f"{base_url}/sendChatAction", json={"chat_id": chat_id, "action": "typing"})
-                            
-                            bot_reply = answer_query(user_text, session_id=session_id)
-                            
-                            requests.post(f"{base_url}/sendMessage", json={
-                                "chat_id": chat_id,
-                                "text": bot_reply
-                            })
+                            if "text" in msg:
+                                user_text = msg["text"]
+                                if user_text.startswith('/start'):
+                                    reply_markup = {
+                                        "keyboard": [
+                                            [{"text": "🏫 Admissions"}, {"text": "💼 Placements"}],
+                                            [{"text": "📅 Academic Calendar"}, {"text": "📞 Contact Info"}]
+                                        ],
+                                        "resize_keyboard": True
+                                    }
+                                    requests.post(f"{base_url}/sendMessage", json={
+                                        "chat_id": chat_id,
+                                        "text": "Welcome to the ANITS Assistant! I can answer any questions you have about the college. Try tapping one of the buttons below, sending a voice message, or typing your question in English, Telugu, or Hindi!",
+                                        "reply_markup": reply_markup
+                                    })
+                                    continue
+                                
+                                requests.post(f"{base_url}/sendChatAction", json={"chat_id": chat_id, "action": "typing"})
+                                bot_reply = answer_query(user_text, session_id=session_id)
+                                requests.post(f"{base_url}/sendMessage", json={"chat_id": chat_id, "text": bot_reply})
+                                
+                            elif "voice" in msg:
+                                file_id = msg["voice"]["file_id"]
+                                requests.post(f"{base_url}/sendChatAction", json={"chat_id": chat_id, "action": "typing"})
+                                
+                                file_info = requests.get(f"{base_url}/getFile?file_id={file_id}").json()
+                                if file_info.get("ok"):
+                                    file_path = file_info["result"]["file_path"]
+                                    download_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
+                                    audio_data = requests.get(download_url).content
+                                    import base64
+                                    audio_payload = f"data:audio/ogg;base64,{base64.b64encode(audio_data).decode('utf-8')}"
+                                    bot_reply = answer_query("", session_id=session_id, audio_payload=audio_payload)
+                                    requests.post(f"{base_url}/sendMessage", json={"chat_id": chat_id, "text": bot_reply})
         except Exception as e:
             print(f"Telegram polling error: {e}")
             time.sleep(5)
