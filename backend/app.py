@@ -1270,15 +1270,23 @@ def answer_query(user_message, session_id="default", audio_payload=None):
         )
         bot_reply = response.text.strip()
         
-        # Save to MongoDB
+        # Clean up Markdown artifacts that don't render well in Telegram/Chat widget
+        import re
+        bot_reply = re.sub(r'\*\*(.*?)\*\*', r'\1', bot_reply)  # Remove bold **
+        bot_reply = re.sub(r'(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)', r'\1', bot_reply)  # Remove italic *
+        bot_reply = re.sub(r'#+\s*(.*?)\n', r'\1\n', bot_reply) # Remove heading hashes
+        bot_reply = bot_reply.replace('---', '-')
+        
+        # Log to MongoDB
         try:
-            db['chat_logs'].insert_one({
-                "session_id": session_id,
-                "user_message": user_message,
-                "bot_reply": bot_reply,
-                "detected_language": lang_code,
-                "timestamp": datetime.utcnow()
-            })
+            if db is not None:
+                db['chat_logs'].insert_one({
+                    "session_id": session_id,
+                    "user_message": user_message,
+                    "bot_reply": bot_reply,
+                    "detected_language": lang_code,
+                    "timestamp": datetime.utcnow()
+                })
         except Exception as e:
             print("MongoDB Log error:", e)
             
