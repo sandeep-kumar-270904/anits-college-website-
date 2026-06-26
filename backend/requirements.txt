@@ -12,3 +12,6 @@ google-genai
 Flask-SQLAlchemy
 scikit-learn
 gunicorn
+
+fastembed
+twilio

@@ -234,7 +234,7 @@ const AdminDashboard = () => {
     setTrainDocsStatus('🔄 Parsing uploaded PDFs and Circulars...');
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/train-docs`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/api/sync`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

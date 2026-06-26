@@ -55,18 +55,33 @@ const ChatWidget = () => {
     setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
     setInput('');
 
+    // Generate or retrieve session_id for conversational memory
+    let sessionId = sessionStorage.getItem('chat_session_id');
+    if (!sessionId) {
+      sessionId = 'web_' + Math.random().toString(36).substring(2, 15);
+      sessionStorage.setItem('chat_session_id', sessionId);
+    }
+
     try {
-      // In production, this should point to your deployed backend URL.
-      // E.g. https://your-backend.com/chat
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ message: userText, session_id: sessionId }),
       });
 
       const data = await response.json();
       if (data.reply) {
         setMessages((prev) => [...prev, { sender: 'bot', text: data.reply }]);
+        
+        // Text-to-Speech Output
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel(); // Stop any previous speaking
+          const utterance = new SpeechSynthesisUtterance(data.reply);
+          // Simple cleanup for TTS to sound better (removes markdown hashes/stars)
+          utterance.text = data.reply.replace(/[*#_]/g, '');
+          window.speechSynthesis.speak(utterance);
+        }
+
       } else {
         setMessages((prev) => [...prev, { sender: 'bot', text: "Sorry, I couldn't process that." }]);
       }
@@ -81,8 +96,18 @@ const ChatWidget = () => {
       {isOpen ? (
         <div className="chat-window">
           <div className="chat-header">
-            <h3>ANITS Assistant</h3>
-            <button onClick={() => setIsOpen(false)}><X size={20} /></button>
+            <div className="header-title">
+              <h3>ANITS Assistant</h3>
+              <div className="social-links">
+                <a href="https://t.me/anil_2026_bot" target="_blank" rel="noopener noreferrer" className="social-btn telegram-btn" title="Chat on Telegram">
+                  <Send size={14} />
+                </a>
+                <a href="https://wa.me/14155238886?text=join%20something-something" target="_blank" rel="noopener noreferrer" className="social-btn whatsapp-btn" title="Chat on WhatsApp">
+                  <MessageCircle size={14} />
+                </a>
+              </div>
+            </div>
+            <button className="close-btn" onClick={() => setIsOpen(false)}><X size={20} /></button>
           </div>
           <div className="chat-body">
             {messages.map((msg, index) => (

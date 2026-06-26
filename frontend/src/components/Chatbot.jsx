@@ -38,8 +38,15 @@ const Chatbot = () => {
     
     setIsTyping(true);
 
+    // Generate or retrieve session_id for conversational memory
+    let sessionId = sessionStorage.getItem('chat_session_id');
+    if (!sessionId) {
+      sessionId = 'web_' + Math.random().toString(36).substring(2, 15);
+      sessionStorage.setItem('chat_session_id', sessionId);
+    }
+
     try {
-      const payload = {};
+      const payload = { session_id: sessionId };
       if (audioBase64) {
         payload.audio = audioBase64;
       } else {
@@ -52,7 +59,17 @@ const Chatbot = () => {
         body: JSON.stringify(payload)
       });
       const data = await response.json();
-      setMessages(prev => [...prev, { text: data.reply || "Sorry, I couldn't understand that.", sender: 'bot' }]);
+      const replyText = data.reply || "Sorry, I couldn't understand that.";
+      setMessages(prev => [...prev, { text: replyText, sender: 'bot' }]);
+      
+      // Text-to-Speech Output
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(replyText);
+        utterance.text = replyText.replace(/[*#_]/g, '');
+        window.speechSynthesis.speak(utterance);
+      }
+
     } catch (error) {
       setMessages(prev => [...prev, { text: "Error connecting to server. Please try again later.", sender: 'bot' }]);
     } finally {

@@ -58,3 +58,16 @@ npm-debug.log
 yarn-error.logbackend/venv311/
 backend/instance/
 chat_logs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+venv311/
+
+# Env
+.env
+
+# Node
+node_modules/
+dist/

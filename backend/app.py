@@ -1,6 +1,11 @@
 import os
 import requests
 from bs4 import BeautifulSoup
+import threading
+import time
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
+
 try:
     import fitz  # PyMuPDF
 except ImportError:
@@ -34,6 +39,10 @@ import numpy as np
 # Load API keys from .env
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-admin-key-for-anits")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "anits123")
@@ -83,13 +92,14 @@ def home():
     return "Welcome to the ANITS Campus Assistant API!"
 
 # MongoDB setup
-uri = "mongodb+srv://admin:dharani1234@cluster1.bgkxmwd.mongodb.net/?appName=Cluster1"
+uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 mongo_client = None
 db = None
 chat_logs = None
 
 try:
-    mongo_client = MongoClient(uri, server_api=ServerApi('1'), serverSelectionTimeoutMS=5000)
+    import certifi
+    mongo_client = MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
     # Send a ping to confirm a successful connection
     mongo_client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
@@ -104,6 +114,21 @@ except Exception as e:
 
 # Enquiries Data Handling (Local JSON Fallback)
 enquiries_file_path = "../data/enquiries.json"
+
+embedding_model = None
+def get_embedding_model():
+    global embedding_model
+    if embedding_model is None:
+        try:
+            from fastembed import TextEmbedding
+            print("Loading FastEmbed Model...")
+            embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+            print("Loaded FastEmbed Model!")
+        except Exception as e:
+            print("Failed to load fastembed:", e)
+    return embedding_model
+
+
 def load_enquiries():
     if os.path.exists(enquiries_file_path):
         with open(enquiries_file_path, "r", encoding="utf-8") as f:
@@ -1143,164 +1168,194 @@ MAX_MESSAGE_LENGTH = 10000
 
 
 
+def answer_query(user_message, session_id="default", audio_payload=None):
+    try:
+        # langdetect is notoriously inaccurate for very short words like "hi" or "hallo"
+        if user_message and len(user_message.split()) >= 3:
+            lang_code = detect(user_message)
+        else:
+            lang_code = "en"
+    except:
+        lang_code = "en"
+        
+    try:
+        # Fetch history from MongoDB
+        history_docs = list(db['chat_logs'].find({"session_id": session_id}).sort("timestamp", -1).limit(5))
+        history_docs.reverse()
+        history = []
+        for doc in history_docs:
+            history.append({"role": "user", "content": doc.get("user_message", "")})
+            history.append({"role": "assistant", "content": doc.get("bot_reply", "")})
+
+        # Vector Search MongoDB
+        vector_context = ""
+        if user_message:
+            try:
+                emb_model = get_embedding_model()
+                if emb_model:
+                    query_embedding = list(emb_model.embed([user_message]))[0].tolist()
+                    pipeline = [
+                        {
+                            "$vectorSearch": {
+                                "index": "vector_index",
+                                "path": "embedding",
+                                "queryVector": query_embedding,
+                                "numCandidates": 50,
+                                "limit": 4
+                            }
+                        },
+                        {
+                            "$project": {
+                                "_id": 0,
+                                "text": 1,
+                                "type": 1,
+                                "score": { "$meta": "vectorSearchScore" }
+                            }
+                        }
+                    ]
+                    results = list(db['knowledge_base'].aggregate(pipeline))
+                    vector_chunks = [res.get('text', '') for res in results]
+                    vector_context = "\n\n".join(vector_chunks)
+            except Exception as e:
+                print(f"Vector search failed: {e}")
+
+        # Fallback Contexts
+        pdf_context = extract_text_from_pdfs()[:2000]
+        official_web_context = extract_official_website_data()[:2000]
+        
+        # Format history for Gemini
+        gemini_contents = []
+        for msg in history:
+            role = "user" if msg["role"] == "user" else "model"
+            gemini_contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg["content"])]))
+            
+        user_parts = []
+        if user_message:
+            user_parts.append(types.Part.from_text(text=user_message))
+            
+        if audio_payload:
+            import base64
+            audio_bytes = base64.b64decode(audio_payload.split(',')[1] if ',' in audio_payload else audio_payload)
+            user_parts.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/webm"))
+            if not user_message:
+                user_parts.append(types.Part.from_text(text="Listen to this audio and reply naturally."))
+                
+        gemini_contents.append(types.Content(role="user", parts=user_parts))
+        
+        sys_instruct = (
+            "You are an incredibly smart, highly capable General Intelligence AI and the official Assistant for ANITS College. "
+            "Act as a friendly, helpful, and concise conversational assistant. "
+            "You actively fetch live internet data when asked about current events, global knowledge, or anything outside the provided college dataset. "
+            "Use your built-in Google Search tool to answer anything the user asks you about the real world! "
+            "For ANITS-specific questions, heavily rely on the 'Vector Search Data' which contains the most relevant college information. "
+            "CRITICAL INSTRUCTION FOR FORMATTING: Do NOT output raw asterisk lists or em dashes. Use proper cleanly formatted paragraphs, or numbered lists (1. 2. 3.). "
+            "CRITICAL INSTRUCTION FOR ANONYMITY: Never mention internal file names, vector DBs, or say 'according to the scraped data'. Synthesize the information naturally as if you are a human college expert speaking directly to a student! "
+            "CRITICAL INSTRUCTION FOR LANGUAGE: You are a deeply multilingual AI. Always adapt to the user's language natively. "
+            "If the user speaks ANY official Indian language (e.g., Hindi, Telugu, Tamil, Bengali, Marathi, Gujarati, etc.) using English/Latin letters (e.g., 'Hinglish', 'Tenglish' like 'kya haal hai' or 'anits kaisa college hai'), YOU MUST reply back in the EXACT same Romanized style natively. "
+            "Maintain context from the conversation naturally. "
+            f"Current detected text language code: '{lang_code}'. (Note: ignore this code if the user is clearly speaking Hinglish/Romanized regional languages).\n\n"
+            f"Vector Search Data (HIGHLY RELEVANT):\n{vector_context}\n\n"
+            f"Official Website Fallback Data:\n{official_web_context}\n\n"
+            f"PDF Documents Fallback Context:\n{pdf_context}\n\n"
+        )
+        
+        response = gemini_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=gemini_contents,
+            config=types.GenerateContentConfig(
+                system_instruction=sys_instruct,
+                max_output_tokens=300,
+                tools=[{"google_search": {}}]
+            )
+        )
+        bot_reply = response.text.strip()
+        
+        # Save to MongoDB
+        try:
+            db['chat_logs'].insert_one({
+                "session_id": session_id,
+                "user_message": user_message,
+                "bot_reply": bot_reply,
+                "detected_language": lang_code,
+                "timestamp": datetime.utcnow()
+            })
+        except Exception as e:
+            print("MongoDB Log error:", e)
+            
+        return bot_reply
+
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Gemini API error: {e}\n{trace}")
+        error_str = str(e)
+        if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+            return "I am currently processing too many requests (Rate Limit Reached). Please wait about 30 seconds and ask me again!"
+        elif "503" in error_str or "UNAVAILABLE" in error_str:
+            return "I am currently experiencing a massive surge in traffic! Please give me a few moments and try your question again."
+        else:
+            return "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
+
+
 @app.route("/chat", methods=["POST"])
 @limiter.limit("55 per minute")
 def chat():
-    # 10. Input validation
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing payload"}), 400
         
     user_message = data.get("message", "").strip()
-    has_audio = bool(data.get("audio"))
+    session_id = data.get("session_id", "default")
+    audio_payload = data.get("audio")
     
-    if not user_message and not has_audio:
+    if not user_message and not audio_payload:
         return jsonify({"error": "Message or audio cannot be empty"}), 400
         
     if len(user_message) > 10000:
         return jsonify({"error": "Message exceeds 10000 characters limit"}), 400
 
-    # 1. Auto language detection
-    try:
-        lang_code = detect(user_message) if user_message else "en"
-    except:
-        lang_code = "en"
-
-    bot_reply = None
-
-    if not bot_reply:
-        try:
-            # Prepare context
-            pdf_context = extract_text_from_pdfs()
-            official_web_context = extract_official_website_data()
-            ui_code_context = extract_website_data()
-            image_context = extract_image_data()
-            
-            # Load session history first so we can use it for RAG
-            if 'chat_history' not in session:
-                session['chat_history'] = []
-            history = session['chat_history']
-            
-            # Basic RAG / Context Filtering to prevent 503 high-demand retries and extreme latency
-            def get_relevant_chunks(text, query, history, chunk_size=2000, top_k=2):
-                if not text: return ""
-                
-                # Build context-aware query by combining last user message and current query
-                context_query = query
-                if len(history) >= 2:
-                    context_query = history[-2].get("content", "") + " " + query
-                    
-                query_words = set(context_query.lower().replace('?', '').replace(',', '').split())
-                stop_words = {"what", "is", "the", "tell", "me", "about", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "from", "are", "they", "it", "this", "that", "these", "those", "can", "you", "show", "how", "why", "when", "where", "who", "which", "please", "do", "does", "did", "have", "has", "had", "would", "could", "should", "some"}
-                query_words = query_words - stop_words
-                
-                if not query_words: return text[:chunk_size*top_k]
-                
-                chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
-                
-                def score(chunk):
-                    chunk_lower = chunk.lower()
-                    return sum(1 for w in query_words if w in chunk_lower)
-                
-                scored = sorted(chunks, key=score, reverse=True)
-                return "\n...\n".join(scored[:top_k])
-
-            relevant_web = get_relevant_chunks(official_web_context, user_message, history, 2500, 3)
-            relevant_pdf = get_relevant_chunks(pdf_context, user_message, history, 2500, 2)
-            relevant_img = get_relevant_chunks(image_context, user_message, history, 1500, 1)
-            
-            # Format history for Gemini
-            gemini_contents = []
-            # Add history (last 5 interactions = 10 messages max)
-            for msg in history[-10:]:
-                role = "user" if msg["role"] == "user" else "model"
-                gemini_contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg["content"])]))
-                
-            user_parts = []
-            if user_message:
-                user_parts.append(types.Part.from_text(text=user_message))
-                
-            # If there's an audio payload, decode it and attach it!
-            if "audio" in data and data["audio"]:
-                import base64
-                audio_bytes = base64.b64decode(data["audio"].split(',')[1] if ',' in data["audio"] else data["audio"])
-                user_parts.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/webm"))
-                if not user_message:
-                    user_parts.append(types.Part.from_text(text="Listen to this audio and reply naturally."))
-                    
-            gemini_contents.append(types.Content(role="user", parts=user_parts))
-            
-            sys_instruct = (
-                "You are an incredibly smart, highly capable General Intelligence AI and the official Assistant for ANITS College (Anil Neerukonda Institute of Technology & Sciences). "
-                "Act as a friendly, helpful, and concise conversational assistant. Begin conversations politely (e.g., 'How can I help you?'). "
-                "You actively fetch live internet data when asked about current events, global knowledge, or anything outside the provided college dataset. "
-                "Use your built-in Google Search tool to answer anything the user asks you about the real world! "
-                "For ANITS-specific questions, heavily rely on the 'Official Website Data' which contains deep-scraped real-time pages from anits.org. "
-                "CRITICAL INSTRUCTION FOR FORMATTING: The user HATES raw AI symbols like asterisks (*) or em dashes (--). Do NOT output raw asterisk lists or em dashes. Use proper cleanly formatted paragraphs, or numbered lists (1. 2. 3.). "
-                "CRITICAL INSTRUCTION FOR ANONYMITY: Never mention internal file names (like .jsx or .py files), PDFs, or say 'according to the scraped data'. Synthesize the information naturally as if you are a human college expert speaking directly to a student! "
-                "ONLY if the user explicitly asks how you were trained or to analyze the 'Local UI Code', then you may reference the source code. Otherwise, keep your answers strictly focused on their question. "
-                "Maintain context from the conversation naturally. "
-                "CRITICAL INSTRUCTION FOR LANGUAGES: You natively support ALL 23 Official Languages of India (Assamese, Bengali, Bodo, Dogri, Gujarati, Hindi, Kannada, Kashmiri, Konkani, Maithili, Malayalam, Manipuri, Marathi, Nepali, Odia, Punjabi, Sanskrit, Santali, Sindhi, Tamil, Telugu, Urdu, and English). "
-                "If the user speaks or types to you in ANY of these languages, you MUST reply fluently in that exact same language script. "
-                f"Current detected text language code: '{lang_code}'. Reply natively if it is non-English.\n\n"
-                f"FAQs & Database:\n{json.dumps(faq_data)[:5000]}\n\n"
-                f"Faculty Database:\n{json.dumps(load_faculty())[:3000]}\n\n"
-                f"Events Database:\n{json.dumps(load_events())[:3000]}\n\n"
-                f"Placements Database:\n{json.dumps(load_placements())[:3000]}\n\n"
-                f"Official Website Data (anits.org):\n{relevant_web}\n\n"
-                f"PDF Documents Context:\n{relevant_pdf}\n\n"
-                f"Images Data:\n{relevant_img}\n\n"
-                f"Local UI Code (ONLY use if asked about code):\n{ui_code_context[:3000]}"
-            )
-            response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=gemini_contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=sys_instruct,
-                    max_output_tokens=300,
-                    tools=[{"google_search": {}}]
-                )
-            )
-            bot_reply = response.text.strip()
-            
-            # Save history
-            history.append({"role": "user", "content": user_message})
-            history.append({"role": "assistant", "content": bot_reply})
-            # Keep only last 5 exchanges (10 messages)
-            session['chat_history'] = history[-10:]
-            session.modified = True
-            
-        except Exception as e:
-            import traceback
-            trace = traceback.format_exc()
-            print(f"Gemini API error: {e}")
-            print(trace)
-            
-            error_str = str(e)
-            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
-                bot_reply = "I am currently processing too many requests (Rate Limit Reached). Please wait about 30 seconds and ask me again!"
-            elif "503" in error_str or "UNAVAILABLE" in error_str:
-                bot_reply = "I am currently experiencing a massive surge in traffic! Please give me a few moments and try your question again."
-            else:
-                bot_reply = "I'm sorry, I am currently experiencing technical difficulties. Please try again later."
-                
-            return jsonify({"reply": bot_reply})
-
-    # 7. Chat logging to SQLite
-    try:
-        new_log = ChatLog(
-            user_message=user_message,
-            bot_reply=bot_reply,
-            detected_language=lang_code,
-            timestamp=datetime.utcnow()
-        )
-        sql_db.session.add(new_log)
-        sql_db.session.commit()
-    except Exception as e:
-        print("SQLite log error:", e)
-        sql_db.session.rollback()
-
+    bot_reply = answer_query(user_message, session_id, audio_payload)
     return jsonify({"reply": bot_reply})
+
+
+
+def process_twilio_message(incoming_msg, sender_number, receiver_number):
+    try:
+        session_id = sender_number if sender_number else "whatsapp_default"
+        bot_reply = answer_query(incoming_msg, session_id=session_id)
+        
+        account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+        auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+        
+        if account_sid and auth_token:
+            from twilio.rest import Client
+            client = Client(account_sid, auth_token)
+            client.messages.create(
+                body=bot_reply,
+                from_=receiver_number,
+                to=sender_number
+            )
+        else:
+            print("Missing Twilio credentials in environment.")
+    except Exception as e:
+        print(f"Twilio REST API Error: {e}")
+
+@app.route("/api/whatsapp", methods=["POST"])
+def whatsapp_webhook():
+    incoming_msg = request.values.get('Body', '').strip()
+    sender_number = request.values.get('From', '')
+    receiver_number = request.values.get('To', '')
+    
+    # Process asynchronously to prevent Twilio 15-second webhook timeout
+    threading.Thread(
+        target=process_twilio_message, 
+        args=(incoming_msg, sender_number, receiver_number), 
+        daemon=True
+    ).start()
+    
+    # Acknowledge receipt immediately
+    return '', 200
+
 
 @app.route("/analytics", methods=["GET"])
 def analytics():
@@ -1318,58 +1373,44 @@ def analytics():
         return jsonify({
             "total_messages": total_messages,
             "language_usage": language_breakdown,
-            "top_questions": top_questions
+            "frequent_questions": top_questions
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/admin", methods=["GET"])
-def admin_dashboard():
-    # 9. GET /admin dashboard inline HTML
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>ANITS Chatbot Admin</title>
-        <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            .card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 5px; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-        </style>
-    </head>
-    <body>
-        <h1>Chatbot Admin Dashboard</h1>
-        <div class="card" id="stats">Loading analytics...</div>
-        <a href="/export" style="display: inline-block; margin: 10px 0; padding: 10px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Download CSV Logs</a>
+import subprocess
+
+@app.route("/api/upload", methods=["POST"])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file and file.filename.endswith('.pdf'):
+        filename = secure_filename(file.filename)
+        os.makedirs("data", exist_ok=True)
+        file_path = os.path.join("data", filename)
+        file.save(file_path)
+        return jsonify({"message": f"File {filename} uploaded successfully. Remember to trigger sync!"}), 200
+    return jsonify({"error": "Only PDF files are allowed"}), 400
+
+@app.route("/api/sync", methods=["POST"])
+def sync_data():
+    try:
+        def run_sync():
+            try:
+                import sys
+                subprocess.run([sys.executable, "sync_vectors.py"], check=True)
+                print("Vector DB Sync completed successfully.")
+            except Exception as e:
+                print(f"Error during vector sync: {e}")
+                
+        threading.Thread(target=run_sync, daemon=True).start()
         
-        <script>
-            fetch('/analytics')
-                .then(r => r.json())
-                .then(data => {
-                    if(data.error) {
-                        document.getElementById('stats').innerText = 'Error loading data: ' + data.error;
-                        return;
-                    }
-                    
-                    let langHtml = '<ul>' + Object.entries(data.language_usage).map(([k,v]) => `<li>${k}: ${v}</li>`).join('') + '</ul>';
-                    let topQHtml = '<ul>' + Object.entries(data.top_questions).map(([k,v]) => `<li>${k} (${v} times)</li>`).join('') + '</ul>';
-                    
-                    document.getElementById('stats').innerHTML = `
-                        <h3>Total Messages: ${data.total_messages}</h3>
-                        <h4>Language Usage:</h4> ${langHtml}
-                        <h4>Top 10 Questions:</h4> ${topQHtml}
-                    `;
-                })
-                .catch(e => {
-                    document.getElementById('stats').innerText = 'Fetch error: ' + e;
-                });
-        </script>
-    </body>
-    </html>
-    """
-    return html
+        return jsonify({"message": "Data sync process started in the background. This may take a few minutes."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/export", methods=["GET"])
 def export_logs():
@@ -1408,6 +1449,51 @@ def health_check():
             "reason": str(e),
             "timestamp": datetime.utcnow().isoformat()
         }), 500
+
+
+def telegram_polling():
+    if not TELEGRAM_BOT_TOKEN:
+        print("Telegram bot token not found. Skipping Telegram polling.")
+        return
+        
+    base_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
+    offset = None
+    
+    print("Started Telegram Polling Thread!")
+    while True:
+        try:
+            url = f"{base_url}/getUpdates?timeout=30"
+            if offset:
+                url += f"&offset={offset}"
+                
+            response = requests.get(url, timeout=40)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("ok"):
+                    for update in data["result"]:
+                        offset = update["update_id"] + 1
+                        
+                        if "message" in update and "text" in update["message"]:
+                            chat_id = update["message"]["chat"]["id"]
+                            user_text = update["message"]["text"]
+                            session_id = f"telegram_{chat_id}"
+                            
+                            # Type indicator
+                            requests.post(f"{base_url}/sendChatAction", json={"chat_id": chat_id, "action": "typing"})
+                            
+                            bot_reply = answer_query(user_text, session_id=session_id)
+                            
+                            requests.post(f"{base_url}/sendMessage", json={
+                                "chat_id": chat_id,
+                                "text": bot_reply
+                            })
+        except Exception as e:
+            print(f"Telegram polling error: {e}")
+            time.sleep(5)
+            
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+    threading.Thread(target=telegram_polling, daemon=True).start()
+
 
 if __name__ == "__main__":
     import threading

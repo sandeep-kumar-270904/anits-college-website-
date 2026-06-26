@@ -72,6 +72,20 @@
   pointer-events: all;
 }
 
+@media (max-width: 480px) {
+  .chat-widget-container {
+    bottom: 20px;
+    right: 20px;
+  }
+  .chat-window {
+    width: calc(100vw - 40px);
+    height: calc(100vh - 120px);
+    max-height: 600px;
+    bottom: 75px;
+    right: 0;
+  }
+}
+
 /* Header */
 .chat-header {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
@@ -127,6 +141,43 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
+}
+
+.header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.social-links {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.telegram-btn:hover {
+  background: #0088cc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 136, 204, 0.4);
+}
+
+.whatsapp-btn:hover {
+  background: #25D366;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4);
 }
 
 .close-btn {
@@ -351,6 +402,12 @@
 @keyframes pulse-ring {
   0% { transform: scale(0.8); opacity: 0.5; }
   100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* Light Mode Overrides */
