@@ -161,6 +161,14 @@ const Chatbot = () => {
             <div className="header-text">
               <h3>ANITS Assistant</h3>
               <p>Online | Native Language Support</p>
+              <div className="social-links mt-1 flex gap-2">
+                <a href="https://t.me/anil_2026_bot" target="_blank" rel="noopener noreferrer" className="social-btn telegram-btn" title="Chat on Telegram" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0088cc', color: 'white', padding: '4px', borderRadius: '50%', width: '24px', height: '24px' }}>
+                  <Send size={12} />
+                </a>
+                <a href="https://wa.me/14155238886?text=join%20something-something" target="_blank" rel="noopener noreferrer" className="social-btn whatsapp-btn" title="Chat on WhatsApp" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#25D366', color: 'white', padding: '4px', borderRadius: '50%', width: '24px', height: '24px' }}>
+                  <MessageCircle size={12} />
+                </a>
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
