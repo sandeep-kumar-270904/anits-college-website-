@@ -1342,18 +1342,18 @@ def process_twilio_message(incoming_msg, sender_number, receiver_number):
 
 @app.route("/api/whatsapp", methods=["POST"])
 def whatsapp_webhook():
-    incoming_msg = request.values.get('Body', '').strip()
-    sender_number = request.values.get('From', '')
-    receiver_number = request.values.get('To', '')
+    # TEMPORARILY DISABLED: User is using Twilio for another project
+    # incoming_msg = request.values.get('Body', '').strip()
+    # sender_number = request.values.get('From', '')
+    # receiver_number = request.values.get('To', '')
+    # 
+    # threading.Thread(
+    #     target=process_twilio_message, 
+    #     args=(incoming_msg, sender_number, receiver_number), 
+    #     daemon=True
+    # ).start()
     
-    # Process asynchronously to prevent Twilio 15-second webhook timeout
-    threading.Thread(
-        target=process_twilio_message, 
-        args=(incoming_msg, sender_number, receiver_number), 
-        daemon=True
-    ).start()
-    
-    # Acknowledge receipt immediately
+    # Acknowledge receipt immediately without processing
     return '', 200
 
 
