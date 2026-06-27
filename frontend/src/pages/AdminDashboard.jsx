@@ -832,7 +832,7 @@ const AdminDashboard = () => {
                 value={broadcastMessage}
                 onChange={(e) => setBroadcastMessage(e.target.value)}
                 placeholder="Write your announcement here... (Markdown supported)"
-                className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+                className="w-full h-32 p-4 border border-gray-200 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none placeholder-gray-400"
               />
               <div className="flex justify-between items-center">
                 <span className={`text-sm font-medium ${broadcastStatus.includes('❌') ? 'text-red-500' : 'text-green-600'}`}>
