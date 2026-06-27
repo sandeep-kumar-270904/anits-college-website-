@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase } from 'lucide-react';
+import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase, Megaphone, Send } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
@@ -9,6 +9,11 @@ const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  
+  // Broadcast state
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastStatus, setBroadcastStatus] = useState('');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
   
   // Syllabus state
   const [syllabusYear, setSyllabusYear] = useState('Academic Year 2025-26');
@@ -148,6 +153,30 @@ const AdminDashboard = () => {
 
   const handleExportCSV = () => {
     window.location.href = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/export`;
+  };
+
+  const handleExportPDF = async () => {
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/admin/report.pdf`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ANITS_Monthly_Report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        alert("Failed to generate PDF. Make sure you are logged in.");
+      }
+    } catch (err) {
+      console.error('Failed to download PDF', err);
+    }
   };
 
   const fetchEnquiries = async (token) => {
@@ -727,6 +756,42 @@ const AdminDashboard = () => {
     window.location.href = '/';
   }
 
+  const handleBroadcast = async (e) => {
+    e.preventDefault();
+    if (!broadcastMessage) {
+      setBroadcastStatus('Please enter a message to broadcast.');
+      return;
+    }
+    
+    setIsBroadcasting(true);
+    setBroadcastStatus('Sending broadcast to all Telegram users...');
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/admin/broadcast`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: broadcastMessage })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setBroadcastStatus('✅ ' + data.message);
+        setBroadcastMessage('');
+      } else {
+        setBroadcastStatus('❌ ' + (data.error || 'Broadcast failed'));
+      }
+    } catch (err) {
+      setBroadcastStatus('❌ Error connecting to server.');
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pt-[52px] font-sans pb-16">
       <Helmet>
@@ -751,6 +816,40 @@ const AdminDashboard = () => {
       
       <div className="max-w-6xl mx-auto px-6 space-y-8">
         
+        {/* Broadcast Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-blue-100 overflow-hidden relative mb-8">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+          <div className="border-b border-gray-100 p-6 bg-blue-50/30 flex items-center gap-3">
+            <Megaphone className="text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-900">Broadcast to Students</h2>
+          </div>
+          
+          <div className="p-8 space-y-6">
+            <p className="text-gray-600 text-sm">Send an instant announcement to all students who have interacted with the Telegram Bot.</p>
+            
+            <form onSubmit={handleBroadcast} className="flex flex-col gap-4">
+              <textarea
+                value={broadcastMessage}
+                onChange={(e) => setBroadcastMessage(e.target.value)}
+                placeholder="Write your announcement here... (Markdown supported)"
+                className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+              />
+              <div className="flex justify-between items-center">
+                <span className={`text-sm font-medium ${broadcastStatus.includes('❌') ? 'text-red-500' : 'text-green-600'}`}>
+                  {broadcastStatus}
+                </span>
+                <button 
+                  type="submit" 
+                  disabled={isBroadcasting}
+                  className={`flex items-center gap-2 px-6 py-2.5 font-bold rounded-xl transition-all shadow-sm ${isBroadcasting ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white hover:-translate-y-0.5'}`}
+                >
+                  <Send size={18} /> {isBroadcasting ? 'Sending...' : 'Send Broadcast'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         {/* AI Model Management Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-purple-100 overflow-hidden relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
@@ -1688,12 +1787,20 @@ const AdminDashboard = () => {
               <MessageSquare className="text-indigo-600" />
               <h2 className="text-xl font-bold text-gray-900">Live Chatbot Logs</h2>
             </div>
-            <button 
-              onClick={handleExportCSV}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
-            >
-              Export CSV
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={handleExportPDF}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
+              >
+                Download PDF
+              </button>
+              <button 
+                onClick={handleExportCSV}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
+              >
+                Export CSV
+              </button>
+            </div>
           </div>
           
           <div className="overflow-x-auto">

@@ -105,12 +105,15 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
     db = mongo_client['anits_db']
     enquiries_collection = db['enquiries']
+    telegram_users_collection = db['telegram_users']
     # Ensure indexes
     enquiries_collection.create_index([("timestamp", -1)])
+    telegram_users_collection.create_index([("chat_id", 1)], unique=True)
 except Exception as e:
     print("MongoDB connection error:", e)
     print("App will run without database logging.")
     enquiries_collection = None
+    telegram_users_collection = None
 
 # Enquiries Data Handling (Local JSON Fallback)
 enquiries_file_path = "../data/enquiries.json"
@@ -454,6 +457,84 @@ def token_required(f):
             return jsonify({"error": "Token is invalid"}), 401
         return f(*args, **kwargs)
     return decorated
+
+@app.route("/api/admin/broadcast", methods=["POST"])
+@token_required
+def admin_broadcast():
+    try:
+        data = request.json
+        message = data.get('message')
+        if not message:
+            return jsonify({"error": "Message is required"}), 400
+            
+        if telegram_users_collection is None or not TELEGRAM_BOT_TOKEN:
+            return jsonify({"error": "Telegram not configured"}), 500
+            
+        users = list(telegram_users_collection.find({}))
+        success_count = 0
+        
+        base_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
+        for user in users:
+            try:
+                resp = requests.post(f"{base_url}/sendMessage", json={
+                    "chat_id": user["chat_id"],
+                    "text": f"📢 *ANITS Broadcast*\n\n{message}",
+                    "parse_mode": "Markdown"
+                }, timeout=5)
+                if resp.status_code == 200:
+                    success_count += 1
+            except Exception as e:
+                print(f"Failed to broadcast to {user['chat_id']}: {e}")
+                
+        return jsonify({"message": f"Broadcast sent to {success_count} students."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/report.pdf", methods=["GET"])
+@token_required
+def admin_report():
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+        import io
+        
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        
+        # Draw Title
+        p.setFont("Helvetica-Bold", 24)
+        p.drawString(50, 750, "ANITS Assistant - Monthly Analytics Report")
+        
+        p.setFont("Helvetica", 12)
+        p.drawString(50, 720, f"Generated on: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        if chat_logs is not None:
+            total = chat_logs.count_documents({})
+            p.drawString(50, 680, f"Total Queries Served: {total}")
+            
+            # Aggregate top languages
+            pipeline = [
+                {"$group": {"_id": "$detected_language", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}},
+                {"$limit": 5}
+            ]
+            top_langs = list(chat_logs.aggregate(pipeline))
+            
+            p.setFont("Helvetica-Bold", 16)
+            p.drawString(50, 640, "Top Languages Used:")
+            p.setFont("Helvetica", 12)
+            y = 610
+            for lang in top_langs:
+                p.drawString(70, y, f"- {lang['_id']}: {lang['count']} queries")
+                y -= 25
+                
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        return send_file(buffer, as_attachment=True, download_name="ANITS_Monthly_Report.pdf", mimetype="application/pdf")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -1168,16 +1249,51 @@ MAX_MESSAGE_LENGTH = 10000
 
 
 
+# Mock Student Database for SSO features
+STUDENT_DB = {
+    "319126510001": {"name": "Sandeep Kumar", "attendance": "85%", "marks": "9.2 CGPA", "next_exam": "Machine Learning - 12th Nov"},
+    "319126510002": {"name": "John Doe", "attendance": "72%", "marks": "8.1 CGPA", "next_exam": "Computer Networks - 14th Nov"}
+}
+
 query_cache = {}
 
 def answer_query(user_message, session_id="default", audio_payload=None):
     if not audio_payload and user_message:
         normalized_query = user_message.lower().strip()
+        
+        # Handle student login (mock SSO)
+        if normalized_query.startswith("/login"):
+            parts = normalized_query.split()
+            if len(parts) >= 2:
+                roll_no = parts[1]
+                if roll_no in STUDENT_DB:
+                    # Link session to student
+                    if telegram_users_collection is not None:
+                        telegram_users_collection.update_one(
+                            {"chat_id": session_id.replace("telegram_", "")},
+                            {"$set": {"student_id": roll_no}},
+                            upsert=True
+                        )
+                    return f"✅ Successfully logged in as {STUDENT_DB[roll_no]['name']}. You can now ask about your attendance and marks."
+                else:
+                    return "❌ Invalid Roll Number. Please try again."
+        
         if normalized_query in query_cache:
             print("Cache hit for:", normalized_query)
             return query_cache[normalized_query]
             
     try:
+        # Check if user is logged in
+        student_context = ""
+        if telegram_users_collection is not None and "telegram_" in session_id:
+            chat_id = session_id.replace("telegram_", "")
+            user_data = telegram_users_collection.find_one({"chat_id": int(chat_id) if chat_id.isdigit() else chat_id})
+            if user_data and "student_id" in user_data:
+                roll_no = user_data["student_id"]
+                if roll_no in STUDENT_DB:
+                    sd = STUDENT_DB[roll_no]
+                    student_context = f"\n\n[USER CONTEXT: The user speaking to you is logged in as {sd['name']}, Roll No: {roll_no}. Their attendance is {sd['attendance']}, CGPA is {sd['marks']}, and next exam is {sd['next_exam']}]. Use this info if they ask personal questions."
+
         # langdetect is notoriously inaccurate for very short words like "hi" or "hallo"
         if user_message and len(user_message.split()) >= 3:
             lang_code = detect(user_message)
@@ -1265,8 +1381,14 @@ def answer_query(user_message, session_id="default", audio_payload=None):
             f"Vector Search Data (HIGHLY RELEVANT):\n{vector_context}\n\n"
             f"Official Website Fallback Data:\n{official_web_context}\n\n"
             f"PDF Documents Fallback Context:\n{pdf_context}\n\n"
+            f"{student_context}"
         )
         
+        # Advanced AI Routing (Multi-Agent Simulation)
+        if user_message and any(word in user_message.lower() for word in ["compare", "difference", "vs", "versus", "analyze", "evaluate"]):
+            sys_instruct += "\n\n[REASONING AGENT MODE ENABLED]: The user is asking a complex comparative or analytical question. You MUST act as an advanced Reasoning Agent. Break down your answer into clear Pros/Cons or Differences using highly structured comparative analysis."
+            
+
         response = gemini_client.models.generate_content(
             model="gemini-2.5-flash",
             contents=gemini_contents,
@@ -1516,6 +1638,17 @@ def telegram_polling():
                             msg = update["message"]
                             chat_id = msg["chat"]["id"]
                             session_id = f"telegram_{chat_id}"
+                            
+                            # Track user for broadcasting
+                            if telegram_users_collection is not None:
+                                try:
+                                    telegram_users_collection.update_one(
+                                        {"chat_id": chat_id},
+                                        {"$set": {"chat_id": chat_id, "last_active": datetime.utcnow()}},
+                                        upsert=True
+                                    )
+                                except Exception as db_err:
+                                    print("Failed to save telegram user:", db_err)
                             
                             if "text" in msg:
                                 user_text = msg["text"]
