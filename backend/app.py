@@ -446,6 +446,9 @@ def translate_cached(text: str, src: str, dest: str) -> str:
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return jsonify({}), 200
+            
         token = request.headers.get("Authorization")
         if not token:
             return jsonify({"error": "Token is missing"}), 401
@@ -454,11 +457,12 @@ def token_required(f):
             token = token.split(" ")[1] if " " in token else token
             jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         except Exception as e:
+            print("JWT Decode Error:", e)
             return jsonify({"error": "Token is invalid"}), 401
         return f(*args, **kwargs)
     return decorated
 
-@app.route("/api/admin/broadcast", methods=["POST"])
+@app.route("/api/admin/broadcast", methods=["POST", "OPTIONS"])
 @token_required
 def admin_broadcast():
     try:
