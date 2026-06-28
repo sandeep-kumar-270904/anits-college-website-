@@ -16,3 +16,6 @@ gunicorn
 fastembed
 twilio
 reportlab
+pandas
+openpyxl
+python-docx

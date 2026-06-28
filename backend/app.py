@@ -1270,17 +1270,15 @@ def answer_query(user_message, session_id="default", audio_payload=None):
             parts = normalized_query.split()
             if len(parts) >= 2:
                 roll_no = parts[1]
-                if roll_no in STUDENT_DB:
-                    # Link session to student
-                    if telegram_users_collection is not None:
-                        telegram_users_collection.update_one(
-                            {"chat_id": session_id.replace("telegram_", "")},
-                            {"$set": {"student_id": roll_no}},
-                            upsert=True
-                        )
-                    return f"✅ Successfully logged in as {STUDENT_DB[roll_no]['name']}. You can now ask about your attendance and marks."
+                students_collection = db["students"]
+                student = students_collection.find_one({"roll_number": roll_no})
+                if student:
+                    name = student.get("name", student.get("Name", "Student"))
+                    return {"type": "contact_request", "roll_number": roll_no, "name": name}
+                elif roll_no in STUDENT_DB:
+                    return {"type": "contact_request", "roll_number": roll_no, "name": STUDENT_DB[roll_no]['name']}
                 else:
-                    return "❌ Invalid Roll Number. Please try again."
+                    return "❌ Invalid Roll Number. Please check and try again."
         
         if normalized_query in query_cache:
             print("Cache hit for:", normalized_query)
@@ -1673,8 +1671,63 @@ def telegram_polling():
                                 
                                 requests.post(f"{base_url}/sendChatAction", json={"chat_id": chat_id, "action": "typing"})
                                 bot_reply = answer_query(user_text, session_id=session_id)
-                                requests.post(f"{base_url}/sendMessage", json={"chat_id": chat_id, "text": bot_reply})
-                                
+                                if isinstance(bot_reply, dict) and bot_reply.get("type") == "contact_request":
+                                    if telegram_users_collection is not None:
+                                        telegram_users_collection.update_one(
+                                            {"chat_id": chat_id},
+                                            {"$set": {"pending_roll_number": bot_reply.get("roll_number")}}
+                                        )
+                                    reply_markup = {
+                                        "keyboard": [[{"text": "📱 Share Phone Number to Verify", "request_contact": True}]],
+                                        "one_time_keyboard": True,
+                                        "resize_keyboard": True
+                                    }
+                                    requests.post(f"{base_url}/sendMessage", json={
+                                        "chat_id": chat_id,
+                                        "text": f"Welcome {bot_reply.get('name', '')}! To protect your privacy, please verify your identity by sharing your phone number.",
+                                        "reply_markup": reply_markup
+                                    })
+                                else:
+                                    requests.post(f"{base_url}/sendMessage", json={"chat_id": chat_id, "text": bot_reply})
+                            
+                            elif "contact" in msg:
+                                phone_number = msg["contact"].get("phone_number")
+                                if phone_number and telegram_users_collection is not None:
+                                    user_data = telegram_users_collection.find_one({"chat_id": chat_id})
+                                    if user_data and "pending_roll_number" in user_data:
+                                        roll_no = user_data["pending_roll_number"]
+                                        clean_phone = ''.join(filter(str.isdigit, str(phone_number)))
+                                        if clean_phone.startswith("91") and len(clean_phone) > 10:
+                                            clean_phone = clean_phone[-10:]
+                                            
+                                        students_collection = db["students"]
+                                        student = students_collection.find_one({"roll_number": roll_no})
+                                        db_phone = ""
+                                        if student:
+                                            db_phone = str(student.get("phone", student.get("Phone", student.get("phone_number", ""))))
+                                        elif roll_no in STUDENT_DB:
+                                            db_phone = STUDENT_DB[roll_no].get("phone", "")
+                                            
+                                        clean_db_phone = ''.join(filter(str.isdigit, db_phone))
+                                        if clean_db_phone.startswith("91") and len(clean_db_phone) > 10:
+                                            clean_db_phone = clean_db_phone[-10:]
+                                            
+                                        if not clean_db_phone or clean_phone == clean_db_phone:
+                                            telegram_users_collection.update_one(
+                                                {"chat_id": chat_id},
+                                                {"$set": {"student_id": roll_no}, "$unset": {"pending_roll_number": ""}}
+                                            )
+                                            requests.post(f"{base_url}/sendMessage", json={
+                                                "chat_id": chat_id,
+                                                "text": "✅ Successfully verified! You are now securely logged in. You can ask about your personal data.",
+                                                "reply_markup": {"remove_keyboard": True}
+                                            })
+                                        else:
+                                            requests.post(f"{base_url}/sendMessage", json={
+                                                "chat_id": chat_id,
+                                                "text": "❌ Verification failed. The phone number does not match our records.",
+                                                "reply_markup": {"remove_keyboard": True}
+                                            })
                             elif "voice" in msg:
                                 file_id = msg["voice"]["file_id"]
                                 requests.post(f"{base_url}/sendChatAction", json={"chat_id": chat_id, "action": "typing"})
@@ -1694,6 +1747,106 @@ def telegram_polling():
             
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
     threading.Thread(target=telegram_polling, daemon=True).start()
+
+
+import pandas as pd
+import docx
+import fitz
+import json
+
+@app.route("/api/admin/upload_student_data", methods=["POST", "OPTIONS"])
+@token_required
+def upload_student_data():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    
+    filename = file.filename.lower()
+    students_collection = db["students"]
+    inserted_count = 0
+    records = []
+    
+    try:
+        if filename.endswith(".csv"):
+            df = pd.read_csv(file)
+            records = df.to_dict(orient='records')
+        elif filename.endswith(".xlsx"):
+            df = pd.read_excel(file)
+            records = df.to_dict(orient='records')
+        elif filename.endswith(".pdf") or filename.endswith(".docx"):
+            text = ""
+            if filename.endswith(".pdf"):
+                doc = fitz.open(stream=file.read(), filetype="pdf")
+                for page in doc:
+                    text += page.get_text()
+            else:
+                doc = docx.Document(file)
+                for para in doc.paragraphs:
+                    text += para.text + "\n"
+            
+            prompt = "Extract all student records from the following text. Return a JSON array of objects. Each object MUST have a 'roll_number' field (string). Include any other fields like name, attendance, marks, phone, etc. found in the text. Ensure output is ONLY a raw JSON array.\n\nTEXT:\n" + text[:30000]
+            
+            response = gemini_client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
+            )
+            try:
+                records = json.loads(response.text)
+            except:
+                # Fallback if markdown formatting is present
+                clean_json = response.text.replace("```json", "").replace("```", "").strip()
+                records = json.loads(clean_json)
+        else:
+            return jsonify({"error": "Unsupported file format. Please upload CSV, XLSX, PDF, or DOCX."}), 400
+            
+        for r in records:
+            roll_no = str(r.get("roll_number", r.get("RollNo", r.get("rollno", r.get("Roll Number")))))
+            if roll_no and roll_no != "None":
+                r["roll_number"] = roll_no
+                students_collection.update_one({"roll_number": roll_no}, {"$set": r}, upsert=True)
+                inserted_count += 1
+                
+        return jsonify({"message": f"Successfully processed and updated {inserted_count} student records."})
+    except Exception as e:
+        print("Upload Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/student_fields", methods=["GET"])
+@token_required
+def get_student_fields():
+    try:
+        students_collection = db["students"]
+        docs = students_collection.find().limit(500)
+        keys = set()
+        for d in docs:
+            for k in d.keys():
+                if k not in ["_id"]:
+                    keys.add(k)
+        return jsonify({"fields": list(keys)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/delete_field", methods=["POST", "OPTIONS"])
+@token_required
+def delete_student_field():
+    try:
+        data = request.json
+        field = data.get("field")
+        if not field:
+            return jsonify({"error": "Field is required"}), 400
+        if field == "roll_number":
+            return jsonify({"error": "Cannot delete primary key roll_number"}), 400
+            
+        students_collection = db["students"]
+        result = students_collection.update_many({}, {"$unset": {field: ""}})
+        return jsonify({"message": f"Successfully deleted '{field}' from {result.modified_count} records."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

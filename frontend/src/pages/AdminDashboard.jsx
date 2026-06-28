@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase, Megaphone, Send } from 'lucide-react';
+import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase, Megaphone, Send, Database, Trash2 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
@@ -9,6 +9,11 @@ const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  
+  // Student Data state
+  const [studentFile, setStudentFile] = useState(null);
+  const [studentUploadStatus, setStudentUploadStatus] = useState('');
+  const [studentFields, setStudentFields] = useState([]);
   
   // Broadcast state
   const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -116,6 +121,7 @@ const AdminDashboard = () => {
     fetchLogs(token);
     fetchEnquiries(token);
     fetchAnalytics(token);
+    fetchStudentFields(token);
   }, [navigate]);
 
   const fetchLogs = async (token) => {
@@ -191,6 +197,81 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       console.error('Failed to fetch enquiries', err);
+    }
+  };
+
+  const fetchStudentFields = async (token) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const response = await fetch(`${API_URL}/api/admin/student_fields`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStudentFields(data.fields || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch student fields', err);
+    }
+  };
+
+  const handleStudentUpload = async (e) => {
+    e.preventDefault();
+    if (!studentFile) {
+      setStudentUploadStatus('Please select a file first.');
+      return;
+    }
+    
+    setStudentUploadStatus('Uploading and parsing data...');
+    const formData = new FormData();
+    formData.append('file', studentFile);
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/admin/upload_student_data`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setStudentUploadStatus('✅ ' + data.message);
+        setStudentFile(null);
+        if (document.getElementById('studentFileInput')) {
+            document.getElementById('studentFileInput').value = '';
+        }
+        fetchStudentFields(token);
+      } else {
+        setStudentUploadStatus('❌ ' + (data.error || 'Upload failed'));
+      }
+    } catch (err) {
+      setStudentUploadStatus('❌ Upload error');
+    }
+  };
+
+  const handleDeleteField = async (field) => {
+    if (!window.confirm(`Are you sure you want to delete '${field}' from ALL student records?`)) return;
+    
+    const token = localStorage.getItem('adminToken');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    try {
+      const response = await fetch(`${API_URL}/api/admin/delete_field`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ field })
+      });
+      if (response.ok) {
+        fetchStudentFields(token);
+      } else {
+        const data = await response.json();
+        alert('Error: ' + data.error);
+      }
+    } catch (err) {
+      alert('Error connecting to server.');
     }
   };
 
@@ -816,6 +897,75 @@ const AdminDashboard = () => {
       
       <div className="max-w-6xl mx-auto px-6 space-y-8">
         
+        {/* Universal Data Uploader Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-emerald-100 overflow-hidden relative mb-8">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+          <div className="border-b border-gray-100 p-6 bg-emerald-50/30 flex items-center gap-3">
+            <Database className="text-emerald-600" />
+            <h2 className="text-xl font-bold text-gray-900">Universal Student Data Ingestion</h2>
+          </div>
+          
+          <div className="p-8 grid md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <p className="text-gray-600 text-sm">
+                Upload <strong>CSV, Excel (.xlsx), PDF, or Word (.docx)</strong> files containing student details. 
+                Our Gemini AI will automatically extract unstructured data from PDFs and Word Docs into MongoDB!
+              </p>
+              
+              <form onSubmit={handleStudentUpload} className="flex flex-col gap-4">
+                <input 
+                  type="file" 
+                  id="studentFileInput"
+                  accept=".csv, .xlsx, .pdf, .docx" 
+                  onChange={(e) => setStudentFile(e.target.files[0])} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-all cursor-pointer border border-gray-200 rounded-xl"
+                />
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${studentUploadStatus.includes('❌') ? 'text-red-500' : 'text-green-600'}`}>
+                    {studentUploadStatus}
+                  </span>
+                  <button 
+                    type="submit" 
+                    className="whitespace-nowrap px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-sm flex items-center gap-2"
+                  >
+                    <UploadCloud size={18} /> Upload Data
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            {/* Dynamic Schema Manager */}
+            <div className="border-l border-gray-100 pl-8 space-y-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <CheckCircle size={18} className="text-emerald-500" /> Dynamic Schema Manager
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">
+                Below are all the unique columns currently extracted in your database. 
+                Click delete to wipe useless data from all student records instantly.
+              </p>
+              
+              <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto pr-2 pb-2 custom-scrollbar">
+                {studentFields.map(field => (
+                  <div key={field} className="group flex items-center gap-2 bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-red-200">
+                    <span>{field}</span>
+                    <button 
+                      type="button"
+                      onClick={() => handleDeleteField(field)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      title={`Delete ${field} from database`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+                {studentFields.length === 0 && (
+                  <div className="text-sm text-gray-400 italic">No custom fields detected yet.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Broadcast Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-blue-100 overflow-hidden relative mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
