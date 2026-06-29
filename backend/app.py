@@ -456,6 +456,8 @@ def token_required(f):
             # Bearer <token>
             token = token.split(" ")[1] if " " in token else token
             jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Session expired. Please log in again."}), 401
         except Exception as e:
             print("JWT Decode Error:", e)
             return jsonify({"error": "Token is invalid"}), 401
@@ -551,7 +553,7 @@ def login():
         
     if password == ADMIN_PASSWORD:
         token = jwt.encode(
-            {"user": email, "exp": datetime.utcnow().timestamp() + 3600*24}, # 24 hr expire
+            {"user": email, "exp": datetime.utcnow().timestamp() + 3600*24*30}, # 30 days expire
             JWT_SECRET,
             algorithm="HS256"
         )
