@@ -1391,15 +1391,26 @@ def answer_query(user_message, session_id="default", audio_payload=None):
             sys_instruct += "\n\n[REASONING AGENT MODE ENABLED]: The user is asking a complex comparative or analytical question. You MUST act as an advanced Reasoning Agent. Break down your answer into clear Pros/Cons or Differences using highly structured comparative analysis."
             
 
-        response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=gemini_contents,
-            config=types.GenerateContentConfig(
-                system_instruction=sys_instruct,
-                max_output_tokens=2048,
-                tools=[{"google_search": {}}]
-            )
-        )
+        import time
+        max_retries = 3
+        response = None
+        for attempt in range(max_retries):
+            try:
+                response = gemini_client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=gemini_contents,
+                    config=types.GenerateContentConfig(
+                        system_instruction=sys_instruct,
+                        max_output_tokens=2048,
+                        tools=[{"google_search": {}}]
+                    )
+                )
+                break
+            except Exception as e:
+                if ("429" in str(e) or "RESOURCE_EXHAUSTED" in str(e)) and attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                else:
+                    raise e
         bot_reply = response.text.strip()
         
         # Clean up Markdown artifacts that don't render well in Telegram/Chat widget
