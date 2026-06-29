@@ -1532,6 +1532,7 @@ def recent_queries():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/analytics", methods=["GET"])
+@token_required
 def analytics():
     try:
         total_messages = ChatLog.query.count()
@@ -1555,6 +1556,7 @@ def analytics():
 import subprocess
 
 @app.route("/api/upload", methods=["POST"])
+@token_required
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -1570,6 +1572,7 @@ def upload_file():
     return jsonify({"error": "Only PDF files are allowed"}), 400
 
 @app.route("/api/sync", methods=["POST"])
+@token_required
 def sync_data():
     try:
         def run_sync():
@@ -1587,6 +1590,7 @@ def sync_data():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/export", methods=["GET"])
+@token_required
 def export_logs():
     try:
         logs = ChatLog.query.order_by(ChatLog.timestamp.desc()).all()

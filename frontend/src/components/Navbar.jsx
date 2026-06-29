@@ -166,9 +166,7 @@ const Navbar = () => {
             <Link to="/facilities" className="flex items-center text-white font-medium text-[14px] py-3 px-3 hover:text-blue-200 transition-colors">Facilities</Link>
 
             <div className="ml-auto">
-              {localStorage.getItem('adminToken') && (
-                <Link to="/admin/dashboard" className="text-white text-[12px] bg-white/20 px-3 py-1 rounded-full hover:bg-white/30 transition-colors">Admin Panel</Link>
-              )}
+              {/* Admin Panel button hidden from frontend UI intentionally */}
             </div>
           </div>
 
