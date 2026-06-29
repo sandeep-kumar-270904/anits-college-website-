@@ -908,15 +908,15 @@ const AdminDashboard = () => {
           <div className="p-8 grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <p className="text-gray-600 text-sm">
-                Upload <strong>CSV, Excel (.xlsx), PDF, or Word (.docx)</strong> files containing student details. 
-                Our Gemini AI will automatically extract unstructured data from PDFs and Word Docs into MongoDB!
+                Upload <strong>CSV, Excel (.xlsx, .xls), PDF, Word (.docx), TXT, or JSON</strong> files containing student details. 
+                Our Gemini AI will automatically extract unstructured data from documents directly into MongoDB!
               </p>
               
               <form onSubmit={handleStudentUpload} className="flex flex-col gap-4">
                 <input 
                   type="file" 
                   id="studentFileInput"
-                  accept=".csv, .xlsx, .pdf, .docx" 
+                  accept=".csv, .xlsx, .xls, .pdf, .docx, .txt, .json" 
                   onChange={(e) => setStudentFile(e.target.files[0])} 
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-all cursor-pointer border border-gray-200 rounded-xl"
                 />

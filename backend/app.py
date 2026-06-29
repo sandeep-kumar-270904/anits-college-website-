@@ -1772,19 +1772,24 @@ def upload_student_data():
         if filename.endswith(".csv"):
             df = pd.read_csv(file)
             records = df.to_dict(orient='records')
-        elif filename.endswith(".xlsx"):
+        elif filename.endswith(".xlsx") or filename.endswith(".xls"):
             df = pd.read_excel(file)
             records = df.to_dict(orient='records')
-        elif filename.endswith(".pdf") or filename.endswith(".docx"):
+        elif filename.endswith(".json"):
+            data = json.loads(file.read().decode('utf-8', errors='ignore'))
+            records = data if isinstance(data, list) else [data]
+        elif filename.endswith(".pdf") or filename.endswith(".docx") or filename.endswith(".txt"):
             text = ""
             if filename.endswith(".pdf"):
                 doc = fitz.open(stream=file.read(), filetype="pdf")
                 for page in doc:
                     text += page.get_text()
-            else:
+            elif filename.endswith(".docx"):
                 doc = docx.Document(file)
                 for para in doc.paragraphs:
                     text += para.text + "\n"
+            else:
+                text = file.read().decode('utf-8', errors='ignore')
             
             prompt = "Extract all student records from the following text. Return a JSON array of objects. Each object MUST have a 'roll_number' field (string). Include any other fields like name, attendance, marks, phone, etc. found in the text. Ensure output is ONLY a raw JSON array.\n\nTEXT:\n" + text[:30000]
             
@@ -1802,7 +1807,7 @@ def upload_student_data():
                 clean_json = response.text.replace("```json", "").replace("```", "").strip()
                 records = json.loads(clean_json)
         else:
-            return jsonify({"error": "Unsupported file format. Please upload CSV, XLSX, PDF, or DOCX."}), 400
+            return jsonify({"error": "Unsupported file type. Allowed: .csv, .xlsx, .xls, .pdf, .docx, .txt, .json"}), 400
             
         for r in records:
             roll_no = str(r.get("roll_number", r.get("RollNo", r.get("rollno", r.get("Roll Number")))))
