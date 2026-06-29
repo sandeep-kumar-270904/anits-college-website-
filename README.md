@@ -1,8 +1,8 @@
-# ANITS AI Assistant 🤖🎓
+# ANITS AI Assistant 🤖
 
 Welcome to the **ANITS Chatbot**, a state-of-the-art Generative AI agent exclusively built for Anil Neerukonda Institute of Technology & Sciences.
 
-This project unifies a modern React frontend with a highly intelligent Python backend, powered by MongoDB Vector DB, Google Gemini RAG, and omnichannel integrations (Telegram & Twilio WhatsApp). 
+This project unifies a modern React frontend with a highly intelligent Python backend, powered by MongoDB Vector DB, Google Gemini RAG, and omnichannel integrations (Telegram & WhatsApp). 
 
 ---
 
@@ -10,14 +10,16 @@ This project unifies a modern React frontend with a highly intelligent Python ba
 
 - **Omnichannel Support**: Engage with the AI natively on the College Website, Telegram, or WhatsApp!
 - **Hinglish/Multilingual NLP**: Speaks your language natively. Whether you ask in pure English or Romanized Telugu/Hindi (e.g., *"anits kaisa college hai?"*), it seamlessly understands and responds back in the exact same style.
-- **RAG Architecture**: (Retrieval-Augmented Generation) It uses `sync_vectors.py` to embed all college policies, circulars, and syllabuses into a MongoDB Atlas Vector Search Database. The AI then securely searches this DB to generate 100% accurate, hallucination-free answers.
-- **Push-to-Talk (Voice)**: Features a beautiful voice-recognition button on the React frontend.
-- **Admin Dashboard**: Contains a gorgeous glassmorphism Admin UI to view chatbot analytics, most frequently asked questions, and to effortlessly trigger Vector DB Auto-Syncs by simply uploading PDFs.
+- **RAG Architecture**: Uses `sync_vectors.py` to embed all college policies, circulars, and syllabuses into a MongoDB Atlas Vector Search Database for 100% accurate, hallucination-free answers.
+- **Universal Student Data Ingestion**: Upload massive CSV, XLSX, XLS, PDF, DOCX, TXT, or JSON files. The AI extracts the unstructured text and perfectly normalizes it into MongoDB student records!
+- **Dynamic Schema Manager**: Automatically detects all data fields present in your student database and allows admins to permanently scrub/delete unwanted columns from all records with a single click.
+- **Secure Telegram Auth**: The Telegram bot strictly verifies students before allowing them to query sensitive data. It requests the user's phone number natively and cryptographically checks it against the college's MongoDB student records. 
+- **Admin Dashboard**: Contains a gorgeous glassmorphism Admin UI to view chatbot analytics, manage schemas, ingest student data, and broadcast announcements.
 - **Conversational Memory**: Remembers context securely using unique session IDs spanning across all platforms.
 
 ---
 
-## 🛠 Tech Stack
+## 🚀 Tech Stack
 
 ### Frontend (React/Vite)
 - React 19 + Vite
@@ -27,21 +29,27 @@ This project unifies a modern React frontend with a highly intelligent Python ba
 
 ### Backend (Python/Flask)
 - Flask + Flask-CORS (Web Server & Webhooks)
-- Google Gemini (`google-genai`) for LLM Processing
+- Google Gemini 1.5 Pro/Flash (`google-genai`) for LLM Processing and Document Extraction
 - MongoDB Atlas (Database & Vector Search Indexing)
 - Twilio REST API (WhatsApp Integration)
-- python-telegram-bot (Telegram long-polling)
-- FastEmbed (Local sentence-transformers for Vectorization)
+- python-telegram-bot (Telegram long-polling & Secure Auth)
+- pandas & PyMuPDF (Data parsing)
 
 ---
 
-## 🚀 Getting Started
+## 📝 Pending / TODO List
+
+- [ ] **Twilio WhatsApp Integration**: We have the Twilio webhook skeleton in place, but we need to finalize the setup with the actual `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` to fully enable WhatsApp bot functionality.
+
+---
+
+## 🛠️ Getting Started
 
 ### 1. Prerequisites
 Ensure you have the following installed on your machine:
 - Node.js (v18+)
 - Python 3.11+
-- A MongoDB Atlas Cluster (with Vector Search Index enabled on the `college_data` collection)
+- A MongoDB Atlas Cluster (with Vector Search Index enabled)
 
 ### 2. Environment Setup
 Create a `.env` file inside the `/backend` directory and add the following keys:
@@ -76,13 +84,7 @@ cd frontend
 npm install
 npm run dev
 ```
-Navigate to `http://localhost:5173` to interact with the bot! Navigate to `http://localhost:5173/admin` to access the Admin Dashboard.
-
----
-
-## 🔄 Auto-Sync Architecture
-The Admin Dashboard allows you to upload new college PDFs (Syllabuses, Circulars, etc.) directly. When uploaded, the frontend hits `/api/sync` on the backend, which spins up a background thread running `sync_vectors.py`. 
-This script automatically parses the text from the PDFs, chunks it, generates vector embeddings locally using FastEmbed, and upserts them into MongoDB—keeping the AI instantly updated without any manual terminal work!
+Navigate to `http://localhost:5173` to interact with the bot! Navigate to `http://localhost:5173/admin/login` to access the secure Admin Dashboard.
 
 ---
 *Built with ❤️ for ANITS College*
