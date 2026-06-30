@@ -92,28 +92,33 @@ def home():
     return "Welcome to the ANITS Campus Assistant API!"
 
 # MongoDB setup
-uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+uri = os.getenv("MONGO_URI")
 mongo_client = None
 db = None
 chat_logs = None
+enquiries_collection = None
+telegram_users_collection = None
+student_records_collection = None
 
 try:
     import certifi
     mongo_client = MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+    db = mongo_client.get_database("college_data")
+    chat_logs = db['chat_logs']
+    enquiries_collection = db['enquiries']
+    telegram_users_collection = db['telegram_users']
+    student_records_collection = db['students']
+    
     # Send a ping to confirm a successful connection
     mongo_client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
-    db = mongo_client['anits_db']
-    enquiries_collection = db['enquiries']
-    telegram_users_collection = db['telegram_users']
+    
     # Ensure indexes
     enquiries_collection.create_index([("timestamp", -1)])
     telegram_users_collection.create_index([("chat_id", 1)], unique=True)
 except Exception as e:
     print("MongoDB connection error:", e)
     print("App will run without database logging.")
-    enquiries_collection = None
-    telegram_users_collection = None
 
 # Enquiries Data Handling (Local JSON Fallback)
 enquiries_file_path = "../data/enquiries.json"
