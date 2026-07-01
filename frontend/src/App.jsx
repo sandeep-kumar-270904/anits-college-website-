@@ -16,6 +16,8 @@ import Placements from './pages/Placements';
 import DepartmentDetail from './pages/DepartmentDetail';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import FacultyLogin from './pages/FacultyLogin';
+import FacultyDashboard from './pages/FacultyDashboard';
 import Principal from './pages/Principal';
 import Team from './pages/Team';
 import Committees from './pages/Committees';
@@ -114,6 +116,8 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/faculty/login" element={<FacultyLogin />} />
+              <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
             </Routes>
           </main>
           <Footer />

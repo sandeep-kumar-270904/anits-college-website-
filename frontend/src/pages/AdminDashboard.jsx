@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase, Megaphone, Send, Database, Trash2 } from 'lucide-react';
+import { UploadCloud, MessageSquare, LogOut, CheckCircle, AlertCircle, BookOpen, FileText, Bell, Mail, Users, TrendingUp, Microscope, Image as ImageIcon, Briefcase, Megaphone, Send, Database, Trash2, Plus } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
@@ -19,6 +19,14 @@ const AdminDashboard = () => {
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastStatus, setBroadcastStatus] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
+  
+  // Faculty Management state
+  const [newFacultyEmail, setNewFacultyEmail] = useState('');
+  const [newFacultyPassword, setNewFacultyPassword] = useState('');
+  const [newFacultyName, setNewFacultyName] = useState('');
+  const [newFacultyDept, setNewFacultyDept] = useState('Computer Science Engineering');
+  const [newFacultyStatus, setNewFacultyStatus] = useState('');
+  const [isCreatingNewFaculty, setIsCreatingNewFaculty] = useState(false);
   
   // Syllabus state
   const [syllabusYear, setSyllabusYear] = useState('Academic Year 2025-26');
@@ -873,6 +881,44 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateFaculty = async (e) => {
+    e.preventDefault();
+    if (!newFacultyEmail || !newFacultyPassword || !newFacultyName) {
+      setNewFacultyStatus('❌ Please fill all required fields');
+      return;
+    }
+    setIsCreatingNewFaculty(true);
+    setNewFacultyStatus('Creating account...');
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const response = await fetch(`${API_URL}/api/admin/create-faculty`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({
+          email: newFacultyEmail,
+          password: newFacultyPassword,
+          name: newFacultyName,
+          department: newFacultyDept
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNewFacultyStatus('✅ ' + data.message);
+        setNewFacultyEmail('');
+        setNewFacultyPassword('');
+        setNewFacultyName('');
+      } else {
+        setNewFacultyStatus('❌ ' + (data.error || 'Failed to create faculty'));
+      }
+    } catch (err) {
+      setNewFacultyStatus('❌ Server error');
+    }
+    setIsCreatingNewFaculty(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pt-[52px] font-sans pb-16">
       <Helmet>
@@ -994,6 +1040,68 @@ const AdminDashboard = () => {
                   className={`flex items-center gap-2 px-6 py-2.5 font-bold rounded-xl transition-all shadow-sm ${isBroadcasting ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white hover:-translate-y-0.5'}`}
                 >
                   <Send size={18} /> {isBroadcasting ? 'Sending...' : 'Send Broadcast'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Manage Faculty Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-emerald-100 overflow-hidden relative mb-8">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+          <div className="border-b border-gray-100 p-6 bg-emerald-50/30 flex items-center gap-3">
+            <Users className="text-emerald-600" />
+            <h2 className="text-xl font-bold text-gray-900">Manage Faculty Accounts</h2>
+          </div>
+          
+          <div className="p-8 space-y-6">
+            <p className="text-gray-600 text-sm">Create accounts for faculty members to access the Faculty Portal and broadcast emails.</p>
+            
+            <form onSubmit={handleCreateFaculty} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  required
+                  value={newFacultyName}
+                  onChange={(e) => setNewFacultyName(e.target.value)}
+                  placeholder="Full Name (e.g., Dr. Smith)"
+                  className="w-full p-3 border border-gray-200 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+                <select
+                  value={newFacultyDept}
+                  onChange={(e) => setNewFacultyDept(e.target.value)}
+                  className="w-full p-3 border border-gray-200 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                >
+                  {deptsList.map((d, i) => <option key={i} value={d}>{d}</option>)}
+                </select>
+                <input
+                  type="email"
+                  required
+                  value={newFacultyEmail}
+                  onChange={(e) => setNewFacultyEmail(e.target.value)}
+                  placeholder="Email Address"
+                  className="w-full p-3 border border-gray-200 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+                <input
+                  type="password"
+                  required
+                  value={newFacultyPassword}
+                  onChange={(e) => setNewFacultyPassword(e.target.value)}
+                  placeholder="Temporary Password"
+                  className="w-full p-3 border border-gray-200 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+              
+              <div className="flex justify-between items-center mt-2">
+                <span className={`text-sm font-medium ${newFacultyStatus.includes('❌') ? 'text-red-500' : 'text-green-600'}`}>
+                  {newFacultyStatus}
+                </span>
+                <button 
+                  type="submit" 
+                  disabled={isCreatingNewFaculty}
+                  className={`flex items-center gap-2 px-6 py-2.5 font-bold rounded-xl transition-all shadow-sm ${isCreatingNewFaculty ? 'bg-emerald-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white hover:-translate-y-0.5'}`}
+                >
+                  <Plus size={18} /> {isCreatingNewFaculty ? 'Creating...' : 'Create Account'}
                 </button>
               </div>
             </form>

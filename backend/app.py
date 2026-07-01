@@ -26,7 +26,12 @@ from flask_limiter.util import get_remote_address
 from functools import lru_cache, wraps
 import jwt
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+import resend
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from flask import send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.pool import NullPool
@@ -47,6 +52,13 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-admin-key-for-anits")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "anits123")
 ALLOWED_ADMIN_EMAILS = ["trailmail123456@gmail.com", "xiaomiindia75@gmail.com"]
+
+GMAIL_ADDRESS = os.getenv("GMAIL_ADDRESS")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
+
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
 
 # Initialize LLMs
 gemini_client = None
@@ -108,6 +120,7 @@ try:
     enquiries_collection = db['enquiries']
     telegram_users_collection = db['telegram_users']
     student_records_collection = db['students']
+    faculty_users_collection = db['faculty_users']
     
     # Send a ping to confirm a successful connection
     mongo_client.admin.command('ping')
@@ -468,6 +481,161 @@ def token_required(f):
             return jsonify({"error": "Token is invalid"}), 401
         return f(*args, **kwargs)
     return decorated
+
+def faculty_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return jsonify({}), 200
+            
+        token = request.headers.get("Authorization")
+        if not token:
+            return jsonify({"error": "Token is missing"}), 401
+        try:
+            token = token.split(" ")[1] if " " in token else token
+            decoded = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            if decoded.get("role") != "faculty":
+                return jsonify({"error": "Unauthorized. Faculty access required."}), 403
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Session expired. Please log in again."}), 401
+        except Exception as e:
+            return jsonify({"error": "Token is invalid"}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route("/api/admin/create-faculty", methods=["POST", "OPTIONS"])
+@token_required
+def create_faculty():
+    if request.method == "OPTIONS": return jsonify({}), 200
+    try:
+        data = request.json
+        email = data.get("email")
+        password = data.get("password")
+        name = data.get("name")
+        department = data.get("department")
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+            
+        if faculty_users_collection is None:
+            return jsonify({"error": "Database not connected"}), 500
+            
+        existing = faculty_users_collection.find_one({"email": email})
+        if existing:
+            return jsonify({"error": "Faculty user already exists"}), 400
+            
+        hashed_password = generate_password_hash(password)
+        faculty_users_collection.insert_one({
+            "email": email,
+            "password": hashed_password,
+            "name": name,
+            "department": department,
+            "created_at": datetime.utcnow()
+        })
+        
+        return jsonify({"message": "Faculty account created successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/faculty/login", methods=["POST", "OPTIONS"])
+def faculty_login():
+    if request.method == "OPTIONS": return jsonify({}), 200
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+    
+    if faculty_users_collection is None:
+        return jsonify({"error": "Database not connected"}), 500
+        
+    user = faculty_users_collection.find_one({"email": email})
+    if not user or not check_password_hash(user["password"], password):
+        return jsonify({"error": "Invalid credentials"}), 401
+        
+    token = jwt.encode(
+        {
+            "user": email, 
+            "role": "faculty",
+            "name": user.get("name", ""),
+            "department": user.get("department", ""),
+            "exp": datetime.utcnow().timestamp() + 3600*24*7 # 7 days
+        }, 
+        JWT_SECRET,
+        algorithm="HS256"
+    )
+    return jsonify({
+        "token": token, 
+        "message": "Login successful",
+        "faculty": {
+            "name": user.get("name", ""),
+            "email": email,
+            "department": user.get("department", "")
+        }
+    })
+
+@app.route("/api/faculty/email-broadcast", methods=["POST", "OPTIONS"])
+@faculty_token_required
+def faculty_email_broadcast():
+    if request.method == "OPTIONS": return jsonify({}), 200
+    try:
+        data = request.json
+        subject = data.get("subject")
+        html_body = data.get("html_body")
+        target_year = data.get("target_year") # e.g. "3rd"
+        target_branch = data.get("target_branch") # e.g. "CSE"
+        
+        if not subject or not html_body:
+            return jsonify({"error": "Subject and HTML body are required"}), 400
+            
+        if not GMAIL_ADDRESS or not GMAIL_APP_PASSWORD:
+            return jsonify({"error": "Gmail credentials not configured in environment"}), 500
+            
+        # Optional filtering if we want to send to specific students
+        query = {}
+        if target_year: query["year"] = target_year
+        if target_branch: query["branch"] = target_branch
+        
+        student_emails = []
+        if student_records_collection is not None:
+            students = list(student_records_collection.find(query))
+            student_emails = [s["email"] for s in students if "email" in s]
+            
+        if not student_emails:
+            # Fallback to the sender's email for testing if no students match
+            auth_header = request.headers.get("Authorization").split(" ")[1]
+            decoded = jwt.decode(auth_header, JWT_SECRET, algorithms=["HS256"])
+            student_emails = [decoded.get("user")]
+            
+        success_count = 0
+        
+        # Setup SMTP server connection once for all emails
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
+            
+            for email_addr in student_emails:
+                try:
+                    msg = MIMEMultipart("alternative")
+                    msg['Subject'] = subject
+                    msg['From'] = f"ANITS Faculty <{GMAIL_ADDRESS}>"
+                    msg['To'] = email_addr
+                    
+                    part2 = MIMEText(html_body, 'html')
+                    msg.attach(part2)
+                    
+                    server.sendmail(GMAIL_ADDRESS, email_addr, msg.as_string())
+                    success_count += 1
+                except Exception as e:
+                    print(f"Error sending email to {email_addr}: {e}")
+                    
+            server.quit()
+        except Exception as e:
+            print("SMTP Connection Error:", e)
+            return jsonify({"error": "Failed to connect to Gmail SMTP server"}), 500
+                
+        return jsonify({"message": f"Broadcast sent to {success_count} emails successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/admin/broadcast", methods=["POST", "OPTIONS"])
 @token_required
@@ -1268,7 +1436,7 @@ STUDENT_DB = {
 
 query_cache = {}
 
-def answer_query(user_message, session_id="default", audio_payload=None):
+def answer_query(user_message, session_id="default", audio_payload=None, image_payload=None):
     if not audio_payload and user_message:
         normalized_query = user_message.lower().strip()
         
@@ -1370,8 +1538,20 @@ def answer_query(user_message, session_id="default", audio_payload=None):
             import base64
             audio_bytes = base64.b64decode(audio_payload.split(',')[1] if ',' in audio_payload else audio_payload)
             user_parts.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/webm"))
-            if not user_message:
+            if not user_message and not image_payload:
                 user_parts.append(types.Part.from_text(text="Listen to this audio and reply naturally."))
+                
+        if image_payload:
+            import base64
+            # Determine mime type from base64 header if present, otherwise default to jpeg
+            mime_type = "image/jpeg"
+            if image_payload.startswith("data:image/"):
+                mime_type = image_payload.split(';')[0].split(':')[1]
+            
+            image_bytes = base64.b64decode(image_payload.split(',')[1] if ',' in image_payload else image_payload)
+            user_parts.append(types.Part.from_bytes(data=image_bytes, mime_type=mime_type))
+            if not user_message and not audio_payload:
+                user_parts.append(types.Part.from_text(text="Describe this image in detail or answer any implied questions."))
                 
         gemini_contents.append(types.Content(role="user", parts=user_parts))
         
@@ -1470,14 +1650,15 @@ def chat():
     user_message = data.get("message", "").strip()
     session_id = data.get("session_id", "default")
     audio_payload = data.get("audio")
+    image_payload = data.get("image")
     
-    if not user_message and not audio_payload:
-        return jsonify({"error": "Message or audio cannot be empty"}), 400
+    if not user_message and not audio_payload and not image_payload:
+        return jsonify({"error": "Message, image, or audio cannot be empty"}), 400
         
     if len(user_message) > 10000:
         return jsonify({"error": "Message exceeds 10000 characters limit"}), 400
 
-    bot_reply = answer_query(user_message, session_id, audio_payload)
+    bot_reply = answer_query(user_message, session_id, audio_payload, image_payload)
     return jsonify({"reply": bot_reply})
 
 

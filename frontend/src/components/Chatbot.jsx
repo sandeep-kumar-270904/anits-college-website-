@@ -1,15 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Mic, Bot, Sun, Moon } from 'lucide-react';
+import { MessageCircle, X, Send, Mic, Bot, Sun, Moon, Volume2, Pause, Image as ImageIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import './ChatWidget.css';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [theme, setTheme] = useState('dark'); // dark or light
+  const [theme, setTheme] = useState(localStorage.getItem('chatTheme') || 'light');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  
+  // Text-to-Speech State
+  const [speakingMsgIdx, setSpeakingMsgIdx] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  
+  // Image Upload State
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const fileInputRef = useRef(null);
+  
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
@@ -26,15 +36,83 @@ const Chatbot = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const handleSend = async (audioBase64 = null) => {
-    if (!input.trim() && !audioBase64) return;
+  const synth = window.speechSynthesis;
 
-    const visualMessage = input.trim() || (audioBase64 ? "🎙️ Audio message sent..." : "");
-    
-    if (visualMessage) {
-      setMessages(prev => [...prev, { text: visualMessage, sender: 'user' }]);
-      setInput('');
+  const toggleSpeech = (text, idx) => {
+    if (speakingMsgIdx === idx) {
+      if (isPaused) {
+        synth.resume();
+        setIsPaused(false);
+      } else {
+        synth.pause();
+        setIsPaused(true);
+      }
+    } else {
+      synth.cancel(); // Stop any current speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      const voices = synth.getVoices();
+      const preferredVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Natural')) || voices[0];
+      if (preferredVoice) utterance.voice = preferredVoice;
+
+      utterance.onend = () => {
+        setSpeakingMsgIdx(null);
+        setIsPaused(false);
+      };
+      
+      utterance.onerror = () => {
+        setSpeakingMsgIdx(null);
+        setIsPaused(false);
+      };
+
+      synth.speak(utterance);
+      setSpeakingMsgIdx(idx);
+      setIsPaused(false);
     }
+  };
+
+  useEffect(() => {
+    if (!isOpen) synth.cancel();
+    return () => synth.cancel();
+  }, [isOpen]);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result); // Base64 string
+        setImagePreview(URL.createObjectURL(file));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSend = async (audioBase64 = null) => {
+    if (!input.trim() && !audioBase64 && !selectedImage) return;
+
+    let visualMessage = input.trim();
+    if (audioBase64) visualMessage = "🎙️ Audio message sent...";
+    
+    // Add user message to UI
+    const newMessage = { text: visualMessage, sender: 'user' };
+    if (imagePreview) newMessage.image = imagePreview;
+    
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Capture state values before clearing
+    const textToSend = input.trim();
+    const imageToSend = selectedImage;
+    
+    // Clear inputs immediately
+    setInput('');
+    removeImage();
     
     setIsTyping(true);
 
@@ -50,7 +128,10 @@ const Chatbot = () => {
       if (audioBase64) {
         payload.audio = audioBase64;
       } else {
-        payload.message = visualMessage;
+        payload.message = textToSend;
+        if (imageToSend) {
+          payload.image = imageToSend;
+        }
       }
       
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}/chat`, {
@@ -192,9 +273,23 @@ const Chatbot = () => {
           {messages.map((msg, idx) => (
             <div key={idx} className={`chat-message ${msg.sender}`}>
               {msg.sender === 'bot' ? (
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                <div className="flex flex-col gap-2 relative">
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  <button 
+                    onClick={() => toggleSpeech(msg.text, idx)}
+                    className="self-end mt-1 text-gray-500 hover:text-blue-500 transition-colors"
+                    title={speakingMsgIdx === idx && !isPaused ? "Pause Speech" : "Play Speech"}
+                  >
+                    {speakingMsgIdx === idx && !isPaused ? <Pause size={14} /> : <Volume2 size={14} />}
+                  </button>
+                </div>
               ) : (
-                msg.text
+                <div className="flex flex-col gap-2">
+                  {msg.image && (
+                    <img src={msg.image} alt="Uploaded preview" style={{ maxWidth: '200px', borderRadius: '8px' }} />
+                  )}
+                  {msg.text}
+                </div>
               )}
             </div>
           ))}
@@ -210,32 +305,67 @@ const Chatbot = () => {
         </div>
 
         {/* Footer */}
-        <div className="chat-footer">
-          <div className="input-wrapper">
+        <div className="chat-footer relative flex-col items-start gap-2 p-3">
+          
+          {/* Image Preview Area */}
+          {imagePreview && (
+            <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg relative self-start mb-2">
+              <img src={imagePreview} alt="Preview" className="w-12 h-12 object-cover rounded-md" />
+              <button 
+                onClick={removeImage} 
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                title="Remove image"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          )}
+
+          <div className="flex w-full items-center gap-2">
+            <div className="input-wrapper flex-1 m-0">
+              {/* Image Upload Button */}
+              <input 
+                type="file" 
+                accept="image/*" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                onChange={handleImageUpload}
+              />
+              <button 
+                className="action-btn text-gray-500 hover:text-emerald-500 transition-colors mx-1" 
+                onClick={() => fileInputRef.current.click()} 
+                title="Attach Image"
+              >
+                <ImageIcon size={18} />
+              </button>
+
+              <button 
+                className={`action-btn mic-btn ${isListening ? 'listening' : ''}`} 
+                onClick={isListening ? stopVoice : startVoice} 
+                title={isListening ? "Stop Recording" : "Use Microphone"}
+                style={isListening ? { color: 'red', animation: 'pulse 1s infinite' } : {}}
+              >
+                <Mic size={18} />
+              </button>
+              
+              <input 
+                className="chat-input-field flex-1 ml-2"
+                type="text" 
+                placeholder="Ask a question..." 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+            
             <button 
-              className={`action-btn mic-btn ${isListening ? 'listening' : ''}`} 
-              onClick={isListening ? stopVoice : startVoice} 
-              title={isListening ? "Stop Recording" : "Use Microphone"}
-              style={isListening ? { color: 'red', animation: 'pulse 1s infinite' } : {}}
+              className="send-btn shrink-0 ml-2" 
+              onClick={() => handleSend()}
+              disabled={!input.trim() && !isListening && !selectedImage}
             >
-              <Mic size={18} />
+              <Send size={16} style={{ marginLeft: '2px' }} />
             </button>
-            <input 
-              className="chat-input-field"
-              type="text" 
-              placeholder="Ask a question..." 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
           </div>
-          <button 
-            className="send-btn" 
-            onClick={() => handleSend()}
-            disabled={!input.trim() && !isListening}
-          >
-            <Send size={16} style={{ marginLeft: '2px' }} />
-          </button>
         </div>
 
       </div>
