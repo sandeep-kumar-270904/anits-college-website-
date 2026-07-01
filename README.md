@@ -15,6 +15,8 @@ This project unifies a modern React frontend with a highly intelligent Python ba
 - **Dynamic Schema Manager**: Automatically detects all data fields present in your student database and allows admins to permanently scrub/delete unwanted columns from all records with a single click.
 - **Secure Telegram Auth**: The Telegram bot strictly verifies students before allowing them to query sensitive data. It requests the user's phone number natively and cryptographically checks it against the college's MongoDB student records. 
 - **Admin Dashboard**: Contains a gorgeous glassmorphism Admin UI to view chatbot analytics, manage schemas, ingest student data, and broadcast announcements.
+- **Faculty Broadcast Portal**: Dedicated login for faculty members to compose and securely broadcast emails to all enrolled students using Google SMTP, complete with rich text support.
+- **Multimodal AI Vision**: Users can upload images (e.g., photos of timetables, handwritten notices, or diagrams) directly into the chat widget, and the Gemini 2.5 Flash model will accurately interpret and answer questions about them.
 - **Conversational Memory**: Remembers context securely using unique session IDs spanning across all platforms.
 
 ---
@@ -64,6 +66,10 @@ GEMINI_API_KEY=your_gemini_key
 TELEGRAM_BOT_TOKEN=your_telegram_token
 TWILIO_ACCOUNT_SID=your_twilio_sid
 TWILIO_AUTH_TOKEN=your_twilio_token
+
+# Email Broadcasts (Faculty Portal)
+GMAIL_ADDRESS=your_college_email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
 ```
 
 ### 3. Start the Backend (Flask)
